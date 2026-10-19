@@ -113,6 +113,9 @@ function AppointmentForm(
     const bookTime = async (formData) => {
         const profileId = RTKUser?.userData?.role == "patient" ? RTKUser?.userData?.userProfileId : userProfile?._id
 
+        console.log("userProfile: ", userProfile);
+        
+
 
 
         if (!profileId && !forUpdation) {

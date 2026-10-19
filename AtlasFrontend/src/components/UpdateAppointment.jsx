@@ -12,8 +12,12 @@ import { useAxios } from "../useAxios";
 import { useEffect } from "react";
 import { CustomButton } from "../utils/CustomButton";
 import { useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { UpdateAppointmentDetailsForm } from "../forms/UpdateAppointmentDetailsForm";
+import { UpdateAppointmentTimeForm } from "../forms/UpdateAppointmentTimeForm";
 
 function UpdateAppointment() {
+
     /* const
         {
             requesterRole = "patient",
@@ -33,43 +37,45 @@ function UpdateAppointment() {
             paymentStatus = ""
         } = useLocation().state() */
 
-    const { state } = useLocation()
+    const
+    {
+        state
+    } = useLocation()
+
+    const appointmentDetails = state?.appointmentDetails || null
+
+    const isForTimeUpdation = state?.isForTimeUpdation || false
 
 
-    console.log("state in updateAppointment.jsx: ", state);
-    
+    console.log("state in updateAppointment.jsx: ", appointmentDetails?.appointmentId);
+
 
 
     let { data, error, loading, request, setError, setData, setLoading } = useAxios()
-    let isTimeRemain = false
+    const
+    {
+        userData
+    }
+    = useSelector(state => state.userReducer.userInfo);
 
 
-    const fetchDoctors = async () => {
 
-        if (!state?.role?.trim()) {
-            setError("There is no role provided")
-            return null;
-            
-        }
-        else if(state.role == "patient" && state?.updationTime <= Date.now())
-        {
-            setError(`You have no more time to update this appointment ${state?.updationTime - Date.now()}`)
-            return null;
 
-        }
+    const fetchDoctors = async () => 
+    {
 
         await request("/doctors/get-all-doctor-times", "get")
-
 
     }
 
     useEffect(() => {
 
-        fetchDoctors()
-        
-        
 
-    }, [])
+        if (userData?.role !== "patient" && isForTimeUpdation) {
+            fetchDoctors()
+        }
+
+    }, [userData?.role, isForTimeUpdation])
 
 
     return (
@@ -100,7 +106,7 @@ function UpdateAppointment() {
                                     </h1>
 
                                     <p className="mt-1 text-sm text-gray-500">
-                                        Update your treatment session with our clinic.
+                                        Update treatment session with our Atlas Physiotherapy.
                                     </p>
                                 </div>
                             </div>
@@ -155,15 +161,29 @@ function UpdateAppointment() {
                                 )
                             }
                             {
-                                !loading && data && !error &&
-                                    (
-                                        <AppointmentForm
-                                            forUpdation={true}
-                                            userProfile={state}
-                                            providedDoctor={state?.doctor}
-                                            doctorsList={data?.DBDoctors}
+                                userData?.role == "patient" ? 
+                                (
+                                    <div>
+                                        <UpdateAppointmentDetailsForm 
+                                        appointmentDetails={appointmentDetails}
                                         />
-                                    )
+                                    </div>
+                                ) : isForTimeUpdation ?
+                                (
+                                    <div>
+                                        <UpdateAppointmentTimeForm
+                                        appointmentDetails={appointmentDetails}
+                                        />
+                                    </div>
+                                )
+                                :
+                                (
+                                    <div>
+                                        <UpdateAppointmentDetailsForm 
+                                        appointmentDetails={appointmentDetails}
+                                        />
+                                    </div>
+                                )
                             }
 
 

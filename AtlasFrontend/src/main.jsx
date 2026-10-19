@@ -5,7 +5,7 @@ import "./App.css"
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { store } from './Redux/store'
-import {App} from './App'
+import {AppointmentActions} from './App'
 import {Layout} from './Routing/Layout'
 import {Searcher} from './components/Searcher'
 
@@ -135,6 +135,6 @@ createRoot(
 ).render(
     <Provider store={store}>
     <RouterProvider router={router} />
-    {/* <App /> */}
+    {/* <AppointmentActions /> */}
     </Provider>
 )

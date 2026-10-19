@@ -1,6 +1,7 @@
 import express from 'express'
 import { authMiddleware } from '../middlewares/authMiddleware.middleware.js'
 import { addAppointment } from '../controllers/appointment/addAppointment.controller.js'
+import { updatingAppointmentDetails } from '../controllers/appointment/updateAppointmentDetails.controller.js'
 import { cacellingAppointment } from '../controllers/appointment/cancelAppointment.controller.js'
 import { appointmentSearcher } from '../controllers/appointment/searcher.controller.js'
 import { updatingAppointment } from '../controllers/appointment/updateAppointment.controller.js'
@@ -55,6 +56,10 @@ appointmentRouter.route("/get-patient-payments").post(authMiddleware, verifyRole
 
 
 appointmentRouter.route("/get-patient-appointments").post(authMiddleware, verifyRole("patient"), patientAppointmentsDetails)
+
+
+
+appointmentRouter.route("/update-appointment-details").patch(authMiddleware, updatingAppointmentDetails)
 
 
 

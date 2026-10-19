@@ -1,0 +1,671 @@
+/* import React, { useEffect, useState } from 'react'
+import { TextInput } from '../utils/TextInput'
+import { PasswordInput } from '../utils/PasswordInput'
+import { ImageInput } from '../utils/ImageInput'
+import { CustomButton } from '../utils/CustomButton'
+import { useForm } from 'react-hook-form'
+import { useAxios } from '../useAxios'
+import { Loading } from '../utils/Loading'
+import { ErrorMessage } from '../utils/ErrorMessage'
+import { useDispatch, useSelector } from 'react-redux'
+import { setUserInfo } from '../Redux/userSlice'
+import { SelectInput } from '../utils/CustomSelectInput'
+import { TimeSelection } from '../utils/Times'
+import { ScreenBlankError } from '../utils/ScreenBlankError'
+
+const sessionTypes =
+    [
+        {
+            label: "Check up",
+            value: "checkUp"
+        },
+        {
+            label: "Physiotherapy",
+            value: "physiotherapy"
+        },
+        {
+            label: "Cupping",
+            value: "cupping"
+        },
+        {
+            label: "Dry Needling",
+            value: "dryNeedling"
+        },
+    ]
+
+const statusOptions =
+    [
+        {
+            label: "Pending",
+            value: "pending"
+        },
+        {
+            label: "Completed",
+            value: "done"
+        }
+    ]
+
+const daysOptions = [
+    {
+        value: "monday",
+        label: "Monday"
+    },
+    {
+        value: "tuesday",
+        label: "Tuesday"
+    },
+    {
+        value: "wednesday",
+        label: "Wednesday"
+    },
+    {
+        value: "thursday",
+        label: "Thursday"
+    },
+    {
+        value: "friday",
+        label: "Friday"
+    },
+    {
+        value: "saturday",
+        label: "Saturday"
+    }
+]
+
+function AppointmentForm(
+    {
+        forUpdation=false,
+        providedDoctor,
+        userProfile = {},
+        doctorsList = [],
+    }
+) {
+
+
+    const RTKUser = useSelector(state => state.userReducer.userInfo)
+    const { handleSubmit, formState: { errors }, register } = useForm()
+    const [selectedDoctor, setSelectedDoctor] = useState()
+    const [msg, setMsg] = useState("")
+    const [doctor, setDoctors] = useState([])
+    const [date, setDate] = useState(new Date())
+    const [doctorId, setDoctorId] = useState(null)
+    const [times, setTimes] = useState({})
+    let { data, error, loading, request, setError, setData, setLoading } = useAxios()
+    const [selectedDay, setSelectedDay] = useState(new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase())
+
+    const removeMsg = () => {
+        setTimeout(() => {
+            setMsg("")
+        }, 500);
+    }
+
+    const setTime = (doctor) => {
+
+        const targettedTimes = doctorsList.filter(doc => doc?._id == doctor)
+
+
+
+        setDoctorId(targettedTimes?.[0]?._id)
+        setTimes(targettedTimes?.[0]?.doctorField?.times)
+
+    }
+
+    const bookTime = async (formData) => {
+        const profileId = RTKUser?.userData?.role == "patient" ? RTKUser?.userData?.userProfileId : userProfile?._id
+
+        console.log("userProfile: ", userProfile);
+        
+
+
+
+        if (!profileId && !forUpdation) {
+            setError("Please provide user profile id")
+            return;
+        }
+        if (
+            [
+                doctorId,
+                formData?.["patientName"],
+                formData?.["cellNo"],
+                formData?.["day"],
+                formData?.["time"],
+            ].some(field => !field || field?.trim() == "")
+        ) {
+            setError("Please provide all required fields without extra blank spaces")
+            return;
+        }
+
+        formData =
+        {
+            ...formData,
+            doctor: doctorId,
+            date: date,
+            profileId: forUpdation ? "" : profileId,
+            
+        }
+
+        if(forUpdation)
+        {
+            formData["appointmentId"] = userProfile?.appointmentId
+            formData["currentTime"] = formData?.["time"]
+            formData["previousTime"] = userProfile?.time
+            formData["previousDay"] = userProfile?.day
+            formData["currentDay"] = data?.day
+        }
+
+        console.log("formData: ", formData);
+        
+        
+
+        await request(forUpdation ? "/appointments/update-appointment" : "/appointments/add-appointment", forUpdation ? "patch" :  "post", formData)
+
+
+
+    }
+
+
+
+    useEffect(() => {
+        if (!(doctor.length > 0)) {
+            const readyDoctors = doctorsList.map(doc => ({ value: doc?._id, label: doc?.fullName }))
+            setDoctors(readyDoctors)
+
+            setSelectedDoctor(providedDoctor || readyDoctors?.[0]?.value)
+
+        }
+        setTime(selectedDoctor)
+
+        if (new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase() == "sunday" && !userProfile?.day) {
+            setSelectedDay("monday")
+        }
+
+    }, [doctorsList, selectedDoctor])
+
+
+    useEffect(() => {
+
+        let presentDate = new Date()
+
+        const daysNumbers =
+        {
+            "monday": 1,
+            "tuesday": 2,
+            "wednesday": 3,
+            "thursday": 4,
+            "friday": 5,
+            "saturday": 6,
+        }
+
+        let difference = daysNumbers[selectedDay.toLocaleLowerCase()] - presentDate.getDay()
+
+
+
+        presentDate.setDate(presentDate.getDate() + difference)
+
+
+
+        setDate(presentDate)
+
+    }, [selectedDay])
+
+    useEffect(() => {
+
+        if (data?._id?.length > 0) {
+            setMsg("Successfully booked appointment")
+            removeMsg()
+
+
+        }
+
+
+    }, [data])
+
+
+
+
+
+
+
+
+    return (
+        <div className='relative'>
+            {
+                msg.length > 0 &&
+                <ScreenBlankError
+                    msg={msg}
+                />
+            }
+            <form
+                className='relative'
+                onSubmit={handleSubmit(bookTime)}>
+                {
+                    loading &&
+                    (<Loading />)
+                }
+
+                <TextInput
+                    defaultValue={userProfile?.fullName || RTKUser?.userData?.fullName}
+                    errors={errors}
+                    name={"patientName"}
+                    register={register}
+                    lable='Patient Name'
+                    placeholder="Enter patient's name"
+                />
+
+                <br />
+
+                <TextInput
+                    defaultValue={userProfile?.email || RTKUser?.userData?.email }
+                    errors={errors}
+                    name={"email"}
+                    isRequired={false}
+                    register={register}
+                    lable='Email'
+                    placeholder="Enter patient's email"
+                />
+                <br />
+
+                <TextInput
+                    defaultValue={userProfile?.cellNo || RTKUser?.userData?.cellNo}
+                    errors={errors}
+                    name={"cellNo"}
+                    register={register}
+                    lable='Phone Number'
+                    placeholder="Enter patient's phone number"
+                />
+                <br />
+
+                <TextInput
+                    defaultValue={userProfile?.diagnoses}
+                    isRequired={false}
+                    errors={errors}
+                    name={"diagnoses"}
+                    register={register}
+                    lable='Diagnoses'
+                    placeholder="Briefly describe problem or diseases of patient"
+                />
+                <br />
+
+                {
+                    RTKUser?.userData?.role !== "patient" &&
+                    (
+                        <div>
+                            <TextInput
+                                type='Number'
+                                defaultValue={userProfile?.payable || 1000}
+                                isRequired={false}
+                                errors={errors}
+                                name={"payable"}
+                                register={register}
+                                lable='Payable Amount'
+                                placeholder="Enter payable amount"
+                            />
+                            <br />
+
+                            <TextInput
+                                defaultValue={userProfile?.paid}
+                                type='Number'
+                                isRequired={false}
+                                errors={errors}
+                                name={"paid"}
+                                register={register}
+                                lable='Paid Amount'
+                                placeholder="Enter paid amount"
+                            />
+                            <br />
+
+
+                            <SelectInput
+                                defaultValue={userProfile?.treatmentStatus || 'pending'}
+                                options={statusOptions}
+                                error={errors}
+                                label={"Appointment Status"}
+                                name={"status"}
+                                register={register}
+                                placeholder='Select an appointment status'
+                            />
+                            <br />
+                        </div>
+                    )
+                }
+
+
+                <SelectInput
+                    defaultValue={userProfile?.forSession || sessionTypes[0]?.value}
+                    options={sessionTypes}
+                    error={errors}
+                    label={"Select Session Type"}
+                    name={"forSession"}
+                    register={register}
+                    placeholder='Select a session type for treatement'
+                />
+
+                <br />
+                <div className=' grid grid-cols-1 sm:grid-cols-2 sm:gap-5 gap-5'>
+                    {
+                        doctor?.length > 0 &&
+                        <SelectInput
+                            defaultValue={providedDoctor || doctor?.[0]?.value}
+                            onChange={(doc) => (setSelectedDoctor(doc))}
+                            options={doctor}
+                            error={errors}
+                            label={"Select Doctor"}
+                            name={"doctor"}
+                            register={register}
+                            placeholder='Select a doctor for your treatment'
+                        />
+                    }
+                    <SelectInput
+                        defaultValue={userProfile?.day || selectedDay.toLowerCase()}
+                        onChange={(day) => (setSelectedDay(day))}
+                        options={daysOptions}
+                        error={errors}
+                        label={"Select Day"}
+                        name={"day"}
+                        register={register}
+                        placeholder='Select a day for your treatment'
+                    />
+
+
+                </div>
+                <br />
+
+
+                <TimeSelection
+                    defaultTime={forUpdation && userProfile?.time ? userProfile?.time : ""}
+                    date={date.toLocaleDateString("en-US", { dateStyle: "medium" })}
+                    errors={errors}
+                    name='time'
+                    register={register}
+                    selectedDay={selectedDay}
+                    times={times}
+
+                />
+
+                <div className='flex mt-5 justify-end'>
+                    <div className='w-1/2'>
+                        <CustomButton
+                            name={forUpdation ? "Save Changes" : 'Book'}
+                            type='submit'
+
+                        />
+                    </div>
+                </div>
+
+                <br />
+                {
+                    error?.length > 0 &&
+                    <ErrorMessage message={error} />
+                }
+
+            </form>
+        </div>
+    )
+}
+
+export { AppointmentForm } */
+import React, { useEffect, useState } from 'react'
+import { TextInput } from '../utils/TextInput'
+import { PasswordInput } from '../utils/PasswordInput'
+import { ImageInput } from '../utils/ImageInput'
+import { CustomButton } from '../utils/CustomButton'
+import { useForm } from 'react-hook-form'
+import { useAxios } from '../useAxios'
+import { Loading } from '../utils/Loading'
+import { ErrorMessage } from '../utils/ErrorMessage'
+import { useDispatch, useSelector } from 'react-redux'
+import { setUserInfo } from '../Redux/userSlice'
+import { SelectInput } from '../utils/CustomSelectInput'
+import { TimeSelection } from '../utils/Times'
+import { ScreenBlankError } from '../utils/ScreenBlankError'
+import { useNavigate } from 'react-router-dom'
+
+const sessionTypes =
+    [
+        {
+            label: "Check up",
+            value: "checkUp"
+        },
+        {
+            label: "Physiotherapy",
+            value: "physiotherapy"
+        },
+        {
+            label: "Cupping",
+            value: "cupping"
+        },
+        {
+            label: "Dry Needling",
+            value: "dryNeedling"
+        },
+    ]
+
+const statusOptions =
+    [
+        {
+            label: "Pending",
+            value: "pending"
+        },
+        {
+            label: "Completed",
+            value: "done"
+        }
+    ]
+
+
+function UpdateAppointmentTimeForm(
+    {
+        appointmentDetails = {},
+    }
+) {
+
+
+    const RTKUser = useSelector(state => state.userReducer.userInfo);
+    const { handleSubmit, formState: { errors }, register } = useForm();
+    const [msg, setMsg] = useState("");
+    const navigate = useNavigate();
+    let { data, error, loading, request, setError, setData, setLoading } = useAxios();
+
+    const removeMsg = (isNavigate) => {
+        setTimeout(() => {
+            setMsg("");
+            isNavigate ? navigate("/searcher") : null;
+        }, 500);
+    }
+
+    const updateAppointment = async (formData) => {
+
+        console.log("appointmentDetails: ", appointmentDetails);
+
+        if(!appointmentDetails?.appointmentId)
+        {
+            setError("Appointment id is not provided")
+            return;
+        }
+        
+        if (
+            [
+                formData?.["patientName"],
+                formData?.["cellNo"],
+            ].some(field => !field || field?.trim() == "")
+        ) {
+            setError("Please provide patient's name and cell number");
+            return;
+        }
+
+        formData =
+        {
+            ...formData,
+            appointmentId: appointmentDetails?.appointmentId
+            
+        }
+
+
+        console.log("formData: ", formData);
+        
+        
+
+        await request("/appointments/update-appointment-details", "patch", formData)
+
+
+
+    }
+
+
+
+    useEffect(() => {
+
+        if (data?._id?.length > 0) {
+            setMsg("Appointment has updated successfully")
+            removeMsg(true)
+        }
+
+    }, [data])
+
+
+
+
+
+
+
+
+    return (
+        <div className='relative'>
+            {
+                msg.length > 0 &&
+                <ScreenBlankError
+                    msg={msg}
+                />
+            }
+            <form
+                className='relative'
+                onSubmit={handleSubmit(updateAppointment)}>
+                {
+                    loading &&
+                    (<Loading />)
+                }
+
+                <TextInput
+                    defaultValue={appointmentDetails?.fullName}
+                    errors={errors}
+                    name={"patientName"}
+                    register={register}
+                    lable='Patient Name'
+                    placeholder="Enter patient's name"
+                />
+
+                <br />
+
+                <TextInput
+                    defaultValue={appointmentDetails?.email}
+                    errors={errors}
+                    name={"email"}
+                    isRequired={false}
+                    register={register}
+                    lable='Email'
+                    placeholder="Enter patient's email"
+                />
+                <br />
+
+                <TextInput
+                    defaultValue={appointmentDetails?.cellNo}
+                    errors={errors}
+                    name={"cellNo"}
+                    register={register}
+                    lable='Phone Number'
+                    placeholder="Enter patient's phone number"
+                />
+                <br />
+
+                <TextInput
+                    defaultValue={appointmentDetails?.diagnoses}
+                    isRequired={false}
+                    errors={errors}
+                    name={"diagnoses"}
+                    register={register}
+                    lable='Diagnoses'
+                    placeholder="Briefly describe problem or diseases of patient"
+                />
+                <br />
+
+                {
+                    RTKUser?.userData?.role !== "patient" &&
+                    (
+                        <div>
+                            <TextInput
+                                type='Number'
+                                defaultValue={appointmentDetails?.payable || 1000}
+                                isRequired={false}
+                                errors={errors}
+                                name={"payable"}
+                                register={register}
+                                lable='Payable Amount'
+                                placeholder="Enter payable amount"
+                            />
+                            <br />
+
+                            <TextInput
+                                defaultValue={appointmentDetails?.paid}
+                                type='Number'
+                                isRequired={false}
+                                errors={errors}
+                                name={"paid"}
+                                register={register}
+                                lable='Paid Amount'
+                                placeholder="Enter paid amount"
+                            />
+                            <br />
+
+
+                            <SelectInput
+                                defaultValue={appointmentDetails?.treatmentStatus || 'pending'}
+                                options={statusOptions}
+                                error={errors}
+                                label={"Appointment Status"}
+                                name={"status"}
+                                register={register}
+                                placeholder='Select an appointment status'
+                            />
+                            <br />
+                        </div>
+                    )
+                }
+
+
+                <SelectInput
+                    defaultValue={appointmentDetails?.forSession || sessionTypes[0]?.value}
+                    options={sessionTypes}
+                    error={errors}
+                    label={"Select Session Type"}
+                    name={"forSession"}
+                    register={register}
+                    placeholder='Select a session type for treatement'
+                />
+
+                
+                <br />
+
+
+
+                <div className='flex mt-5 justify-end'>
+                    <div className='w-1/2'>
+                        <CustomButton
+                            name={"Save Changes"}
+                            type='submit'
+
+                        />
+                    </div>
+                </div>
+
+                <br />
+                {
+                    error?.length > 0 &&
+                    <ErrorMessage message={error} />
+                }
+
+            </form>
+        </div>
+    )
+}
+
+export { UpdateAppointmentTimeForm }

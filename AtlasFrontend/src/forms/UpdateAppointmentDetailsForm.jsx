@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { TextInput } from '../utils/TextInput'
+import { PasswordInput } from '../utils/PasswordInput'
+import { ImageInput } from '../utils/ImageInput'
 import { CustomButton } from '../utils/CustomButton'
 import { useForm } from 'react-hook-form'
 import { useAxios } from '../useAxios'
 import { Loading } from '../utils/Loading'
 import { ErrorMessage } from '../utils/ErrorMessage'
 import { useDispatch, useSelector } from 'react-redux'
+import { setUserInfo } from '../Redux/userSlice'
 import { SelectInput } from '../utils/CustomSelectInput'
 import { TimeSelection } from '../utils/Times'
 import { ScreenBlankError } from '../utils/ScreenBlankError'
+import { useNavigate } from 'react-router-dom'
 
 const sessionTypes =
     [
@@ -42,106 +46,60 @@ const statusOptions =
         }
     ]
 
-const daysOptions = [
-    {
-        value: "monday",
-        label: "Monday"
-    },
-    {
-        value: "tuesday",
-        label: "Tuesday"
-    },
-    {
-        value: "wednesday",
-        label: "Wednesday"
-    },
-    {
-        value: "thursday",
-        label: "Thursday"
-    },
-    {
-        value: "friday",
-        label: "Friday"
-    },
-    {
-        value: "saturday",
-        label: "Saturday"
-    }
-]
 
-function UpdateAppointment(
+function UpdateAppointmentDetailsForm(
     {
-        name= "",
-        appointmentId= "",
-        email= "",
-        cellNo= "",
-
+        appointmentDetails = {},
     }
 ) {
 
 
-    const RTKUser = useSelector(state => state.userReducer.userInfo)
-    const { handleSubmit, formState: { errors }, register } = useForm()
-    const [selectedDoctor, setSelectedDoctor] = useState()
-    const [msg, setMsg] = useState("")
-    const [doctor, setDoctors] = useState([])
-    const [date, setDate] = useState(new Date())
-    const [doctorId, setDoctorId] = useState(null)
-    const [times, setTimes] = useState({})
-    const dispatch = useDispatch()
-    let { data, error, loading, request, setError, setData, setLoading } = useAxios()
-    const [selectedDay, setSelectedDay] = useState(new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase())
+    const RTKUser = useSelector(state => state.userReducer.userInfo);
+    const { handleSubmit, formState: { errors }, register } = useForm();
+    const [msg, setMsg] = useState("");
+    const navigate = useNavigate();
+    let { data, error, loading, request, setError, setData, setLoading } = useAxios();
 
-    const removeMsg = () => {
+    const removeMsg = (isNavigate) => {
         setTimeout(() => {
-            setMsg("")
+            setMsg("");
+            isNavigate ? navigate("/searcher") : null;
         }, 500);
     }
 
-    const setTime = (doctor) => {
+    const updateAppointment = async (formData) => {
 
-        const targettedTimes = doctorsList.filter(doc => doc?._id == doctor)
+        console.log("appointmentDetails: ", appointmentDetails);
 
-
-
-        setDoctorId(targettedTimes?.[0]?._id)
-        setTimes(targettedTimes?.[0]?.doctorField?.times)
-
-    }
-
-    const bookTime = async (formData) => {
-        const profileId = RTKUser?.userData?.role == "patient" ? RTKUser?.userData?.userProfileId : userProfile?._id
-
-
-
-        if (!profileId) {
-            setError("Please provide user profile id")
+        if(!appointmentDetails?.appointmentId)
+        {
+            setError("Appointment id is not provided")
             return;
         }
+        
         if (
             [
-                doctorId,
                 formData?.["patientName"],
                 formData?.["cellNo"],
-                formData?.["day"],
-                formData?.["time"],
             ].some(field => !field || field?.trim() == "")
         ) {
-            setError("Please provide all required fields without extra blank spaces")
+            setError("Please provide patient's name and cell number");
             return;
         }
 
         formData =
         {
             ...formData,
-            doctor: doctorId,
-            date: date,
-            profileId: profileId
+            appointmentId: appointmentDetails?.appointmentId
+            
         }
 
+
+        console.log("formData: ", formData);
+        
         
 
-        await request("/appointments/add-appointment", "post", formData)
+        await request("/appointments/update-appointment-details", "patch", formData)
 
 
 
@@ -150,57 +108,11 @@ function UpdateAppointment(
 
 
     useEffect(() => {
-        if (!(doctor.length > 0)) {
-            const readyDoctors = doctorsList.map(doc => ({ value: doc?._id, label: doc?.fullName }))
-            setDoctors(readyDoctors)
-
-            setSelectedDoctor(providedDoctor || readyDoctors?.[0]?.value)
-
-        }
-        setTime(selectedDoctor)
-
-        if (new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase() == "sunday") {
-            setSelectedDay("monday")
-        }
-
-    }, [doctorsList, selectedDoctor])
-
-
-    useEffect(() => {
-
-        let presentDate = new Date()
-
-        const daysNumbers =
-        {
-            "monday": 1,
-            "tuesday": 2,
-            "wednesday": 3,
-            "thursday": 4,
-            "friday": 5,
-            "saturday": 6,
-        }
-
-        let difference = daysNumbers[selectedDay.toLocaleLowerCase()] - presentDate.getDay()
-
-
-
-        presentDate.setDate(presentDate.getDate() + difference)
-
-
-
-        setDate(presentDate)
-
-    }, [selectedDay])
-
-    useEffect(() => {
 
         if (data?._id?.length > 0) {
-            setMsg("Successfully booked appointment")
-            removeMsg()
-
-
+            setMsg("Appointment has updated successfully")
+            removeMsg(true)
         }
-
 
     }, [data])
 
@@ -221,14 +133,14 @@ function UpdateAppointment(
             }
             <form
                 className='relative'
-                onSubmit={handleSubmit(bookTime)}>
+                onSubmit={handleSubmit(updateAppointment)}>
                 {
                     loading &&
                     (<Loading />)
                 }
 
                 <TextInput
-                    defaultValue={RTKUser?.userData?.role == "patient" ? RTKUser?.userData?.fullName : userProfile?.fullName}
+                    defaultValue={appointmentDetails?.fullName}
                     errors={errors}
                     name={"patientName"}
                     register={register}
@@ -239,7 +151,7 @@ function UpdateAppointment(
                 <br />
 
                 <TextInput
-                    defaultValue={RTKUser?.userData?.role == "patient" ? RTKUser?.userData?.email : userProfile?.email}
+                    defaultValue={appointmentDetails?.email}
                     errors={errors}
                     name={"email"}
                     isRequired={false}
@@ -250,7 +162,7 @@ function UpdateAppointment(
                 <br />
 
                 <TextInput
-                    defaultValue={RTKUser?.userData?.role == "patient" ? RTKUser?.userData?.cellNo : userProfile?.cellNo}
+                    defaultValue={appointmentDetails?.cellNo}
                     errors={errors}
                     name={"cellNo"}
                     register={register}
@@ -260,6 +172,7 @@ function UpdateAppointment(
                 <br />
 
                 <TextInput
+                    defaultValue={appointmentDetails?.diagnoses}
                     isRequired={false}
                     errors={errors}
                     name={"diagnoses"}
@@ -275,7 +188,7 @@ function UpdateAppointment(
                         <div>
                             <TextInput
                                 type='Number'
-                                defaultValue={1000}
+                                defaultValue={appointmentDetails?.payable || 1000}
                                 isRequired={false}
                                 errors={errors}
                                 name={"payable"}
@@ -286,6 +199,7 @@ function UpdateAppointment(
                             <br />
 
                             <TextInput
+                                defaultValue={appointmentDetails?.paid}
                                 type='Number'
                                 isRequired={false}
                                 errors={errors}
@@ -298,7 +212,7 @@ function UpdateAppointment(
 
 
                             <SelectInput
-                                defaultValue={'pending'}
+                                defaultValue={appointmentDetails?.treatmentStatus || 'pending'}
                                 options={statusOptions}
                                 error={errors}
                                 label={"Appointment Status"}
@@ -313,7 +227,7 @@ function UpdateAppointment(
 
 
                 <SelectInput
-                    defaultValue={userProfile?.forSession ? userProfile?.forSession : sessionTypes[0]?.value}
+                    defaultValue={appointmentDetails?.forSession || sessionTypes[0]?.value}
                     options={sessionTypes}
                     error={errors}
                     label={"Select Session Type"}
@@ -322,51 +236,15 @@ function UpdateAppointment(
                     placeholder='Select a session type for treatement'
                 />
 
-                <br />
-                <div className=' grid grid-cols-1 sm:grid-cols-2 sm:gap-5 gap-5'>
-                    {
-                        doctor?.length > 0 &&
-                        <SelectInput
-                            defaultValue={providedDoctor || doctor?.[0]?.value}
-                            onChange={(doc) => (setSelectedDoctor(doc))}
-                            options={doctor}
-                            error={errors}
-                            label={"Select Doctor"}
-                            name={"doctor"}
-                            register={register}
-                            placeholder='Select a doctor for your treatment'
-                        />
-                    }
-                    <SelectInput
-                        defaultValue={selectedDay.toLowerCase()}
-                        onChange={(day) => (setSelectedDay(day))}
-                        options={daysOptions}
-                        error={errors}
-                        label={"Select Day"}
-                        name={"day"}
-                        register={register}
-                        placeholder='Select a day for your treatment'
-                    />
-
-
-                </div>
+                
                 <br />
 
 
-                <TimeSelection
-                    date={date.toLocaleDateString("en-US", { dateStyle: "medium" })}
-                    errors={errors}
-                    name='time'
-                    register={register}
-                    selectedDay={selectedDay}
-                    times={times}
-
-                />
 
                 <div className='flex mt-5 justify-end'>
                     <div className='w-1/2'>
                         <CustomButton
-                            name='Book'
+                            name={"Save Changes"}
                             type='submit'
 
                         />
@@ -384,4 +262,4 @@ function UpdateAppointment(
     )
 }
 
-export { UpdateAppointment }
+export { UpdateAppointmentDetailsForm }
