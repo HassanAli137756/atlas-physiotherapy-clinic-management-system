@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {TextInput} from '../utils/TextInput'
 import {PasswordInput} from '../utils/PasswordInput'
 import { ImageInput } from '../utils/ImageInput'
@@ -7,17 +7,21 @@ import { useForm } from 'react-hook-form'
 import { useAxios } from '../useAxios'
 import {Loading} from '../utils/Loading'
 import { ErrorMessage } from '../utils/ErrorMessage'
+import { useNavigate } from 'react-router-dom'
+import { ScreenBlankError } from '../utils/ScreenBlankError'
 
 function UpdatePasswordForm() {
 
     const { handleSubmit, formState: { errors }, register } = useForm()
-
+    const [msg, setMsg] = useState("")
     let { data, error, loading, request, setData, setError } = useAxios()
+    const navigate = useNavigate()
 
-    const removeError = () => {
+    const removeMsg = () => {
         setTimeout(() => {
-            setError("")
-        }, 2500);
+            setMsg("")
+            navigate("/settings")
+        }, 1300);
     }
 
     const updatePassword = async (data) => {
@@ -45,6 +49,14 @@ function UpdatePasswordForm() {
     }
 
 
+    useEffect(() =>
+    {
+        if(!loading && data?._id)
+        {
+            setMsg("Sucessfully updated password")
+            removeMsg()
+        }
+    }, [data])
 
     return (
         <form
@@ -56,6 +68,11 @@ function UpdatePasswordForm() {
                 (<Loading />)
             }
 
+            {
+                msg &&
+                (<ScreenBlankError msg={msg} />)
+            }
+
             <PasswordInput
                 errors={errors}
                 name={"currentPassword"}
@@ -64,7 +81,7 @@ function UpdatePasswordForm() {
                 placeholder='Enter your current password'
             />
 
-
+            <br />
 
             <PasswordInput
                 errors={errors}
@@ -74,7 +91,7 @@ function UpdatePasswordForm() {
                 placeholder='Enter your new password'
             />
 
-
+            <br />
             <CustomButton
                 name='Save'
                 type='submit'

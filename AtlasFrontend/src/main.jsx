@@ -26,6 +26,7 @@ import {DoctorLayout} from './Routing/DoctorLayout'
 import {DoctorAppointments} from './components/Doctor/DoctorAppointments'
 import {DoctorHome} from './components/Doctor/DoctorHome'
 import {DoctorPayments} from './components/Doctor/DoctorPayments'
+import {TimeManagement} from './components/Doctor/TimeManagement'
 
 
 import {ReceptionistLayout} from './Routing/ReceptionistLayout'
@@ -38,14 +39,20 @@ import {ReceptionistPayments} from './components/Receptionist/ReceptionistPaymen
 
 import { AuthorizedLayout } from './Routing/AuthorizedLayout'
 import { BookAppointment } from './components/Appointment'
+import { CreateProfile } from './components/CreateProfile'
 import { UpdatePassword } from './authServices/UpdatePassword'
 import { UpdateProfile } from './authServices/UpdateProfile'
+
 
 
 import { UnauthorizedLayout } from './Routing/UnauthorizedLayout'
 import { Login } from './authServices/Login'
 import { Register } from './authServices/Register'
 import { UpdateAppointment } from './components/UpdateAppointment'
+import { ProfileSearcher } from './components/ProfileSearcher'
+import { Settings } from './components/Settings'
+import { Profile } from './components/Profile'
+import { UpdateExistingTimes } from './components/Doctor/UpdateExistingTime'
 
 const router = createBrowserRouter(
 
@@ -61,6 +68,10 @@ const router = createBrowserRouter(
         <Route path="/update-password" element={<UpdatePassword />} />
         <Route path="/update-profile" element={<UpdateProfile />} />
         <Route path="/update-appointment" element={<UpdateAppointment />} />
+        <Route path="/create-profile" element={<CreateProfile />} />
+        <Route path="/profile-searcher" element={<ProfileSearcher />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/my-profile" element={<Profile />} />
         
       </Route>
 
@@ -95,6 +106,8 @@ const router = createBrowserRouter(
         <Route path="/doctor-appointment" element={<DoctorAppointments />} />
         <Route  path="/doctor-home" element={<DoctorHome />} />
         <Route path="/doctor-payment" element={<DoctorPayments />} />
+        <Route path="/doctor-time-management" element={<TimeManagement />} />
+        <Route path="/update-existing-time" element={<UpdateExistingTimes />} />
 
       </Route>
 

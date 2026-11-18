@@ -23,12 +23,12 @@ const getDoctorTimes = asyncHandler( async (req, res) =>
         throw new APIError(404, "Failed to find doctor from database, try again")
     }
 
-    const allTimes = DBDoctor.doctorField?.times || {}
+    const times = DBDoctor.doctorField?.times || {}
 
     return res
     .status(200)
     .json(
-        new APIResponse(200, "Successfully fetched times of doctor", {times: allTimes})
+        new APIResponse(200, "Successfully fetched times of doctor", times)
     )
 
 

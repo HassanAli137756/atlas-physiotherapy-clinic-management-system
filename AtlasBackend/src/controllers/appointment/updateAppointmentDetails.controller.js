@@ -88,11 +88,11 @@ const updatingAppointmentDetails = asyncHandler(async (req, res) => {
 
 
     appointment.generalPatientInfo.patientName = patientName || appointment.generalPatientInfo.patientName,
-        appointment.generalPatientInfo.cellNo = cellNo?.replace("-", "") || appointment.generalPatientInfo.cellNo,
-        appointment.generalPatientInfo.email = email || appointment.generalPatientInfo.email,
-        appointment.forSession = forSession || appointment.forSession,
-        appointment.diagnoses = diagnoses || appointment.diagnoses
-    appointment.paymentStatus = paymentStatus || paid > 0 ? "paid" : appointment.paymentStatus
+    appointment.generalPatientInfo.cellNo = cellNo?.replace("-", "") || appointment.generalPatientInfo.cellNo,
+    appointment.generalPatientInfo.email = email || appointment.generalPatientInfo.email,
+    appointment.forSession = forSession || appointment.forSession,
+    appointment.diagnoses = diagnoses || appointment.diagnoses
+    appointment.paymentStatus = paymentStatus || appointment.paymentStatus
     appointment.status = treatmentStatus || appointment.status
     appointment.paymentSection =
     {

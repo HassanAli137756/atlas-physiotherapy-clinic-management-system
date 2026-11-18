@@ -3,6 +3,7 @@ import React, {useState, useEffect, useRef} from "react"
 import { useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import { AppointmentActions } from "./AppointmentActions";
+import { CustomButton } from "../../utils/CustomButton";
 
 
 
@@ -39,7 +40,41 @@ export function AppointmentCards(
           <p className="mt-1 text-sm text-gray-500">
             {message}
           </p>
+          <br />
+          <div className="flex justify-start">
+            <span className="
+                  inline-flex items-center gap-1.5
+                  px-2.5 py-1.5
+                  rounded-full
+                  bg-emerald-50
+                  text-emerald-700
+                  text-xs font-semibold
+                ">
+              {appointments.length} Appointments
+            </span>
+          </div>
         </div>
+        {
+          userData?.role !== "patient" &&
+          (
+            <div>
+              <CustomButton
+                  isAllowedDefaultClasses={false}
+                  classes="inline-flex items-center justify-center gap-2
+                  rounded-xl bg-emerald-700 px-4 py-2.5
+                  text-sm font-semibold text-white
+                  shadow-sm transition-all duration-200
+                  hover:bg-emerald-800 hover:shadow-md
+                  active:scale-[0.97]
+                  focus:outline-none focus:ring-2
+                  focus:ring-emerald-500 focus:ring-offset-2
+                  w-full sm:w-auto"
+                  name="Create Profile"
+                  onClick={() => navigate("/create-profile")}
+                />
+              </div>
+            )
+          }
 
       </div>
       <div className="divide-y divide-gray-100">
@@ -56,7 +91,11 @@ export function AppointmentCards(
             paid: appointment.paymentSection?.paid,
             payable: appointment.paymentSection?.payable,
             forSession: appointment.forSession,
-            role: userData?.role
+            day: new Date(appointment.times.date).toLocaleDateString("en-US", {"weekday": "long"}).toLowerCase(),
+            time: appointment.times.time,
+            doctor: appointment.doctor,
+            role: userData?.role,
+            date: appointment?.times?.date
           }
           return (
             <div
@@ -68,7 +107,10 @@ export function AppointmentCards(
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
                   {
                     appointment?.userProfileId?.patientAccount?.avatar ?
-                      <img src={appointment?.userProfileId?.patientAccount?.avatar} alt="Err" />
+                      
+                        <img 
+                        className="rounded-full w-15 h-15"
+                        src={appointment?.userProfileId?.patientAccount?.avatar} alt="Err" />
                       :
                       <UserRoundCheck className="h-5 w-5" />
                   }
@@ -153,15 +195,15 @@ export function AppointmentCards(
                             <button
                               onClick={() => navigate("/book-appointment", {
                                 state: {
-                                  appointmentDetails:
-                                  {
-                                    _id: appointment?._id,
+                                  
+                                    profileId: appointment?._id,
                                     doctorId: appointment?.doctor?._id,
                                     fullName: appointment?.generalPatientInfo?.patientName,
                                     email: appointment?.generalPatientInfo?.email,
                                     cellNo: appointment?.generalPatientInfo?.cellNo,
-                                    forSession: appointment?.forSession
-                                  }
+                                    forSession: appointment?.forSession,
+                                    time: appointment?.time,
+                                  
                                 }
                               })}
                               type="button"

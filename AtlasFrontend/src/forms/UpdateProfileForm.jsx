@@ -67,12 +67,12 @@ function UpdateProfileForm(
 
 
     useEffect(() => {
-        if (!loading && data?._id) {
+        if (!loading && data?.user?._id) {
             dispatch(setUserInfo(
                 {
                     isLoadingUser: false,
                     isAuthorized: true,
-                    userData: data,
+                    userData: {...data?.user, userProfileId: data?.userProfileId},
                 }))
         }
     }, [data, error, loading])
@@ -90,7 +90,6 @@ function UpdateProfileForm(
             }
 
 
-
             <TextInput
                 defaultValue={currentFullName}
                 errors={errors}
@@ -100,6 +99,7 @@ function UpdateProfileForm(
                 placeholder='Enter your full name'
             />
 
+            <br />
             <TextInput
                 defaultValue={currentEmail}
                 errors={errors}
@@ -109,6 +109,7 @@ function UpdateProfileForm(
                 placeholder='you@example.com'
             />
 
+            <br />
             <TextInput
                 defaultValue={currentAddress}
                 errors={errors}
@@ -118,7 +119,7 @@ function UpdateProfileForm(
                 placeholder='home, street, colony, city'
             />
 
-
+            <br />
             <TextInput
                 defaultValue={currentPhoneNo}
                 errors={errors}
@@ -128,7 +129,7 @@ function UpdateProfileForm(
                 placeholder='03XX XXXXXXX'
             />
 
-
+            <br />
             <ImageInput
                 defaultImageSrc={currentAvatar}
                 errors={errors}
@@ -141,27 +142,12 @@ function UpdateProfileForm(
             />
 
 
-            <div className='flex justify-between gap-10'>
-                <CustomButton
-                    name='Cancel'
-                    type='button'
-                    isAllowedDefaultClasses={false}
-                    classes='w-full h-11
-                    rounded-lg
-                    border border-gray-200
-                    bg-white
-                    text-sm font-medium text-gray-600
-                    hover:bg-gray-50
-                    hover:text-gray-800
-                    hover:border-gray-300
-                    active:bg-gray-100
-                    transition-all duration-200
-                    focus:outline-none
-                    focus:ring-2 focus:ring-emerald-100'
+            <br />
 
-                />
+            <div className='flex justify-end gap-10'>
+                
                 <CustomButton
-                    name='Update'
+                    name='Save Changes'
                     type='submit'
 
                 />

@@ -260,36 +260,6 @@ const UpdateProfile = () => {
             }
 
 
-            {/* Back / Cancel */}
-            <div className="mt-8 pt-6 border-t border-gray-100">
-
-              <button
-                type="button"
-                className="w-full flex items-center justify-center
-                           gap-2 text-sm font-medium
-                           text-gray-500 hover:text-emerald-600
-                           transition-colors"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                  />
-                </svg>
-
-                Back to profile
-              </button>
-
-            </div>
-
-
             {/* Information Notice */}
             <div
               className="mt-6 flex items-start gap-3

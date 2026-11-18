@@ -12,6 +12,7 @@ import { patientHistoryDetails } from '../controllers/patient/patientHistory.con
 import { patientPaymentDetails } from '../controllers/patient/patientPayments.controller.js'
 import { patientAppointmentsDetails } from '../controllers/patient/patientAppointments.controller.js'
 import {verifyRole} from '../middlewares/verifyRole.middleware.js'
+import { updateAppointmentTime } from '../controllers/appointment/updateAppointmentTime.controller.js'
 
 
 
@@ -20,13 +21,6 @@ const appointmentRouter = express.Router()
 // OKAY
 appointmentRouter.route("/add-appointment").post(authMiddleware, addAppointment)
 
-
-// OKAY
-appointmentRouter.route("/update-payment/:appointmentId").patch(authMiddleware, updatingPayment)
-
-
-// OKAY
-appointmentRouter.route("/update-appointment-status/:appointmentId").patch(authMiddleware, updatingStatus)
 
 
 // OKAY
@@ -40,6 +34,9 @@ appointmentRouter.route("/searcher").post(authMiddleware, appointmentSearcher)
 
 // OKAY
 appointmentRouter.route("/update-appointment").patch(authMiddleware, updatingAppointment)
+
+
+appointmentRouter.route("/update-appointment-times").patch(authMiddleware, updateAppointmentTime)
 
 
 // OKAY

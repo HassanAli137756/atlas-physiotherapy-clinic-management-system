@@ -10,28 +10,9 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { AppointmentCard } from "../../utils/AppointmentCard";
+import { useSelector } from "react-redux";
 
 
-const quickActions = [
-{
-path: "/book-appointment",
-title: "Book Appointment",
-description: "Create a new patient appointment",
-icon: Plus,
-},
-{
-path: "",
-title: "Find Patient",
-description: "Search patient records quickly",
-icon: Search,
-},
-{
-path: "",
-title: "Record Payment",
-description: "Update a pending payment",
-icon: CircleDollarSign,
-},
-];
 
 
 const GeneralAppointments = ({
@@ -41,6 +22,33 @@ const GeneralAppointments = ({
 
   appointments = [],
 }) => {
+
+  const 
+  {
+    userDate
+  } = useSelector(state => state.userReducer.userInfo)
+
+
+  const quickActions = [
+    {
+      path: userDate?.role == "patient" ? "/book-appointment" : "/appointment-searcher",
+      title: "Book Appointment",
+      description: "Create a new patient appointment",
+      icon: Plus,
+    },
+    {
+      path: "/appointment-searcher",
+      title: "Find Patient",
+      description: "Search patient records quickly",
+      icon: Search,
+    },
+    {
+      path: "",
+      title: "Record Payment",
+      description: "Update a pending payment",
+      icon: CircleDollarSign,
+    },
+  ];
 
   const navigate = useNavigate()
 

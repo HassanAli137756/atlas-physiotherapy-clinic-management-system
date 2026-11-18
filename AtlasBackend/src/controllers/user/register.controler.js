@@ -90,19 +90,27 @@ const register = asyncHandler( async (req, res) =>
 
     }
 
-    
+    let profileId = null
     const userProfile = await Profile.findOne(
     {
-        $or: [{cellNo: cellNo}, {patientAccount: createdUser._id}]
+        cellNo: cellNo?.replace("-", ""), 
     })
 
     if(userProfile?._id)
     {
-        if(!userProfile.patientAccount.toString().length > 0)
+        if(!userProfile?.patientAccount)
         {
-            userProfile.patientAccount = createdUser._id
+            userProfile["patientAccount"] = createdUser._id
+            userProfile.name = fullName
+            userProfile.cellNo = cellNo?.replace("-", "")
             
             await userProfile.save({validateBeforeSave: false})
+            profileId = userProfile?._id
+
+        }
+        else
+        {
+            throw new APIError(500, "Please select another number user on this number is already existed");
         }
     }
     else
@@ -120,13 +128,15 @@ const register = asyncHandler( async (req, res) =>
             throw new APIError(500, "failed to register user, as profile id was not created successfully");
         }
 
+        profileId = userProfile?._id
+
     }
     
 
     return res
     .status(201)
     .json(
-        new APIResponse(201, "Successfully register user", createdUser)
+        new APIResponse(201, "Successfully register user", {user: createdUser, userProfileId: profileId })
     )
 
 })

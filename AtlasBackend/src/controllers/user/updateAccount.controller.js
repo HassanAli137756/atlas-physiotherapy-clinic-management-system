@@ -1,5 +1,6 @@
 
 
+import { Profile } from '../../models/Profile.model.js'
 import {User} from '../../models/User.model.js'
 import {APIError} from '../../utils/apiError.js'
 import {APIResponse} from '../../utils/apiResponse.js'
@@ -50,6 +51,22 @@ const updateAccount = asyncHandler( async (req, res) =>
     }
 
 
+    const DBProfile = await Profile.findOne({patientAccount: userId})
+
+    if(!DBProfile?._id)
+    {
+        throw new APIError(404, "Please login again to create your profile, failed to find your profile");
+    }
+
+    if(fullName || cellNo)
+    {
+        DBProfile.name = fullName || DBProfile.name
+        DBProfile.cellNo = cellNo?.replace("-", "") || DBProfile.cellNo?.replace("-", "")
+
+        await DBProfile.save({validateBeforeSave: false})
+    }
+
+
     const DBUser = await User.findById(userId)
 
     if(!DBUser)
@@ -75,7 +92,7 @@ const updateAccount = asyncHandler( async (req, res) =>
     DBUser.fullName = fullName?.trim() ? fullName : DBUser.fullName
     DBUser.email = email?.trim() ? email : DBUser.email
     DBUser.address = address?.trim() ? address : DBUser.address
-    DBUser.cellNo = cellNo?.trim() ? cellNo : DBUser.cellNo
+    DBUser.cellNo = cellNo?.trim() ? cellNo?.replace("-", "") : DBUser.cellNo?.replace("-", "")
     DBUser.avatar = uploadedFile ? uploadedFile.secure_url : DBUser.avatar
     DBUser.avatarPublicID = uploadedFile ? uploadedFile.public_id : DBUser.avatarPublicID
 
@@ -86,7 +103,7 @@ const updateAccount = asyncHandler( async (req, res) =>
     return res
     .status(200)
     .json(
-        new APIResponse(200, "Successfully updated account", DBUser)
+        new APIResponse(200, "Successfully updated account", {user: DBUser, userProfileId: DBProfile._id})
     )
 
 

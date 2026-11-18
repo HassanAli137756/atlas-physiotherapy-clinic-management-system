@@ -1,16 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { TextInput } from '../utils/TextInput'
-import { PasswordInput } from '../utils/PasswordInput'
-import { ImageInput } from '../utils/ImageInput'
 import { CustomButton } from '../utils/CustomButton'
 import { useForm } from 'react-hook-form'
 import { useAxios } from '../useAxios'
 import { Loading } from '../utils/Loading'
 import { ErrorMessage } from '../utils/ErrorMessage'
 import { useDispatch, useSelector } from 'react-redux'
-import { setUserInfo } from '../Redux/userSlice'
 import { SelectInput } from '../utils/CustomSelectInput'
-import { TimeSelection } from '../utils/Times'
 import { ScreenBlankError } from '../utils/ScreenBlankError'
 import { useNavigate } from 'react-router-dom'
 
@@ -33,6 +29,20 @@ const sessionTypes =
             value: "dryNeedling"
         },
     ]
+
+
+const paymentStatusOptions =
+    [
+        {
+            label: "Pending",
+            value: "pending"
+        },
+        {
+            label: "Paid",
+            value: "paid"
+        }
+    ]
+
 
 const statusOptions =
     [
@@ -71,12 +81,11 @@ function UpdateAppointmentDetailsForm(
 
         console.log("appointmentDetails: ", appointmentDetails);
 
-        if(!appointmentDetails?.appointmentId)
-        {
+        if (!appointmentDetails?.appointmentId) {
             setError("Appointment id is not provided")
             return;
         }
-        
+
         if (
             [
                 formData?.["patientName"],
@@ -91,13 +100,13 @@ function UpdateAppointmentDetailsForm(
         {
             ...formData,
             appointmentId: appointmentDetails?.appointmentId
-            
+
         }
 
 
         console.log("formData: ", formData);
-        
-        
+
+
 
         await request("/appointments/update-appointment-details", "patch", formData)
 
@@ -111,7 +120,7 @@ function UpdateAppointmentDetailsForm(
 
         if (data?._id?.length > 0) {
             setMsg("Appointment has updated successfully")
-            removeMsg(true)
+            removeMsg()
         }
 
     }, [data])
@@ -210,13 +219,23 @@ function UpdateAppointmentDetailsForm(
                             />
                             <br />
 
+                            <SelectInput
+                                defaultValue={appointmentDetails?.paymentStatus}
+                                options={paymentStatusOptions}
+                                error={errors}
+                                label={"Payment Status"}
+                                name={"paymentStatus"}
+                                register={register}
+                                placeholder='Select if patient payment pending or paid'
+                            />
+                            <br />
 
                             <SelectInput
                                 defaultValue={appointmentDetails?.treatmentStatus || 'pending'}
                                 options={statusOptions}
                                 error={errors}
                                 label={"Appointment Status"}
-                                name={"status"}
+                                name={"treatmentStatus"}
                                 register={register}
                                 placeholder='Select an appointment status'
                             />
@@ -236,7 +255,7 @@ function UpdateAppointmentDetailsForm(
                     placeholder='Select a session type for treatement'
                 />
 
-                
+
                 <br />
 
 

@@ -11,6 +11,8 @@ import {refreshingAccessToken} from '../controllers/user/refreshingAccessToken.c
 import { logout } from '../controllers/user/logout.controller.js'
 import { updatePassword } from '../controllers/user/updatePassword.controller.js'
 import { makeTimesAvaialble, patientHistoryDetails } from '../controllers/testing.controller.js'
+import { createProfile } from '../controllers/user/createProfile.controller.js'
+import { profileSearcher } from '../controllers/user/profileSearcher.controller.js'
 
 
 export const userRouter = express.Router()
@@ -19,8 +21,6 @@ export const userRouter = express.Router()
 
 // OKAY 
 userRouter.route('/user-register').post(upload.single("avatar"), register)
-
-
 
 
 // OKAY 
@@ -50,8 +50,17 @@ userRouter.route('/refresh-tokens').post(refreshingAccessToken)
 userRouter.route("/user-logout").post(authMiddleware, logout)
 
 
+// OKAY 
+userRouter.route("/create-user-profile").post(authMiddleware, createProfile)
+
+
+userRouter.route("/profile-searcher").post(authMiddleware, profileSearcher)
+
+
 
 userRouter.route("/testing/get-patient-history").post(patientHistoryDetails)
+
+
 
 userRouter.route("/testing/make-times-available").post(makeTimesAvaialble)
 

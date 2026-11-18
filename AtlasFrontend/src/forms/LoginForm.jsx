@@ -84,7 +84,7 @@ function LoginForm() {
         placeholder='Enter user-name or email'
       />
 
-
+      <br />
 
       <PasswordInput
         errors={errors}
@@ -94,6 +94,8 @@ function LoginForm() {
         placeholder='Enter your password'
       />
 
+      
+      <br />
       <CustomButton
         name='Login'
         type='submit'

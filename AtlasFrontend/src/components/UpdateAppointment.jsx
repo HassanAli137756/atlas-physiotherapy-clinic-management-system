@@ -1,41 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import {
     CalendarPlus,
     ArrowLeft,
     CircleCheck,
     Info,
 } from "lucide-react";
-import { AppointmentForm } from "../forms/AppointmentForm";
 import { Loading } from "../utils/Loading";
 import { ErrorMessage } from "../utils/ErrorMessage";
 import { useAxios } from "../useAxios";
 import { useEffect } from "react";
-import { CustomButton } from "../utils/CustomButton";
 import { useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { UpdateAppointmentDetailsForm } from "../forms/UpdateAppointmentDetailsForm";
 import { UpdateAppointmentTimeForm } from "../forms/UpdateAppointmentTimeForm";
 
 function UpdateAppointment() {
-
-    /* const
-        {
-            requesterRole = "patient",
-            patientName = "",
-            appointmentId = "",
-            patientEmail = "",
-            diagnoses = "",
-            time = "",
-            updationDeadLine = 0,
-            doctor = "",
-            day = "",
-            cellNo = "",
-            sessionType = "",
-            treatmentStatus = "",
-            paid = "",
-            payable = "",
-            paymentStatus = ""
-        } = useLocation().state() */
 
     const
     {
@@ -47,11 +26,13 @@ function UpdateAppointment() {
     const isForTimeUpdation = state?.isForTimeUpdation || false
 
 
-    console.log("state in updateAppointment.jsx: ", appointmentDetails?.appointmentId);
+    console.log("isForTimeUpdation in updateAppointment.jsx: ", isForTimeUpdation);
 
 
 
     let { data, error, loading, request, setError, setData, setLoading } = useAxios()
+    const [doctors, setDoctors] = useState([])
+
     const
     {
         userData
@@ -76,6 +57,23 @@ function UpdateAppointment() {
         }
 
     }, [userData?.role, isForTimeUpdation])
+
+
+    useEffect(() => {
+
+        console.log("data: ", data);
+        
+
+        if ((data?.DBDoctors?.length > 0)) {
+
+            const readyDoctors = data?.DBDoctors?.map(doc => ({ value: doc?._id, label: doc?.fullName }))
+
+
+            setDoctors(readyDoctors)
+
+
+        }
+    }, [data])
 
 
     return (
@@ -172,6 +170,7 @@ function UpdateAppointment() {
                                 (
                                     <div>
                                         <UpdateAppointmentTimeForm
+                                        doctorList={doctors}
                                         appointmentDetails={appointmentDetails}
                                         />
                                     </div>

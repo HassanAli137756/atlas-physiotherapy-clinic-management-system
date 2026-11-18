@@ -4,9 +4,6 @@ import {
   Menu,
   X,
   Activity,
-  ChevronDown,
-  LogOut,
-  UserRound,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { Logout } from "../authServices/Logout";
@@ -72,7 +69,20 @@ const Header = ({
 
       }
 
-      setNavLinks(prev => ([...prev, { label: "Searcher", to: "/appointment-searcher" }]))
+      setNavLinks(prev => 
+        (
+          [
+            ...prev, 
+            { 
+              label: "Searcher", 
+              to: "/appointment-searcher" 
+            },
+            { 
+              label: "Settings", 
+              to: "/settings" 
+            },
+          ]
+        ))
 
     }
     else if(!userInfo?.userData?._id && !userInfo?.isAuthorized)

@@ -12,34 +12,6 @@ let endingDefault = new Date()
 startingDefault.setDate(1)
 endingDefault.setFullYear(startingDefault.getFullYear(), startingDefault.getMonth() + 1, 0)
 
-  const doctors = [
-    {
-      name: "Dr. Ahmed Khan",
-      initials: "AK",
-      physio: 32500,
-      cupping: 18500,
-    },
-    {
-      name: "Dr. Muhammad Ali",
-      initials: "MA",
-      physio: 28700,
-      cupping: 22400,
-    },
-    {
-      name: "Dr. Usman",
-      initials: "US",
-      physio: 25400,
-      cupping: 16200,
-    },
-    {
-      name: "Dr. Hassan Ahmed",
-      initials: "HA",
-      physio: 30100,
-      cupping: 21300,
-    },
-  ];
-
-
 function ReceptionistPayments() {
 
   const [startingDate, setStartingDate] = useState(startingDefault.toLocaleDateString('en-CA'));

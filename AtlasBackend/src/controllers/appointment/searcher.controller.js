@@ -24,19 +24,7 @@ const appointmentSearcher = asyncHandler( async (req, res) =>
         throw new APIError(401, "Please login to see your history")
     }
 
-    if (!starting || !ending) {
-        throw new APIError(400, "Please provide starting and ending dates")
-    }
 
-
-    let startingInput = new Date(starting).toLocaleDateString("en-CA");
-    let endingInput = new Date(ending).toLocaleDateString("en-CA");
-    let GeneralStartingDate = new Date(startingInput + "T00:00:00.000Z");
-    let GeneralEndingDate = new Date(endingInput + "T23:59:59.999Z");
-
-    console.log("GeneralStartingDate: ",GeneralStartingDate);
-    console.log("GeneralEndingDate: ",GeneralEndingDate);
-    
 
 
     const options = {}
@@ -49,12 +37,12 @@ const appointmentSearcher = asyncHandler( async (req, res) =>
 
         if(name?.length > 0)
         {
-            options["generalPatientInfo.patientName"] = name
+            options["generalPatientInfo.patientName"] = {$regex: name, $options: "i"}
         }
 
         if(email?.length > 0)
         {
-            options["generalPatientInfo.email"] = email
+            options["generalPatientInfo.email"] = {$regex: email, $options: "i"} 
         }
 
         if(cellNo?.length > 0)
@@ -89,12 +77,32 @@ const appointmentSearcher = asyncHandler( async (req, res) =>
         options.status = status
     }
 
+    if (starting && ending) {
+        let startingInput = new Date(starting).toLocaleDateString("en-CA");
+        let endingInput = new Date(ending).toLocaleDateString("en-CA");
+        let GeneralStartingDate = new Date(startingInput + "T00:00:00.000Z");
+        let GeneralEndingDate = new Date(endingInput + "T23:59:59.999Z");
 
-    options["times.date"] =
-    {
-        $gte: GeneralStartingDate,
-        $lt: GeneralEndingDate,
+        options["times.date"] =
+        {
+            $gte: GeneralStartingDate,
+            $lt: GeneralEndingDate,
+        }
+
+
+
+        console.log("GeneralStartingDate: ", GeneralStartingDate);
+        console.log("GeneralEndingDate: ", GeneralEndingDate);
+
+
+
     }
+
+
+    console.log("options: ", options);
+    
+
+    
 
 
     const targettedAppointments = await Appointment

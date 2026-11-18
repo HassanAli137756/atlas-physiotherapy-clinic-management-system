@@ -36,7 +36,7 @@ const getCurrentUser = asyncHandler( async (req, res) =>
         
         const newProfile = await Profile.create(
         {
-            cellNo: DBUser.cellNo,
+            cellNo: DBUser.cellNo?.replace("-", ""),
             name: DBUser.fullName,
             patientAccount: DBUser._id
         }

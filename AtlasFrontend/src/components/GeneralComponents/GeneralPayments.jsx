@@ -332,10 +332,11 @@ const GeneralPayments = (
         </div>
       </div>
 
-      <div className=" divide-y divide-gray-100  sm:divide-x sm:divide-y-0">
+<br />
+      <div className="p-4 divide-y divide-gray-100  sm:divide-x sm:divide-y-0">
         {/* Physio */}
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid sm:grid-cols-2 gap-4">
 
           {/* Physio */}
           <div className="p-5 sm:p-6  rounded-2xl border border-gray-200 ">

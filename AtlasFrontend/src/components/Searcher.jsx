@@ -23,6 +23,7 @@ function Searcher() {
         return (
         <GeneralSearcher
         showCellNo={role !== "patient" ? true : false}
+        showProfile={role !== "patient" ? true : false}
         showEmail={role !== "patient" ? true : false}
         showPatientName={role !== "patient" ? true : false}
         showSelectDoctor={role !== "doctor" ? true : false}

@@ -95,10 +95,9 @@ const dayTimes = times?.[day] || [];
                     className="group relative cursor-pointer"
                   >
                     <input
-                      defaultValue={defaultTime}
                       defaultChecked={item.time == defaultTime}
                       type="radio"
-                      value={`${item.time}`}
+                      value={defaultTime || item.time}
                       {...register(name, {
                         required: "Please select an appointment time",
                       })}

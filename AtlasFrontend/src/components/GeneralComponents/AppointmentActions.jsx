@@ -1,12 +1,12 @@
-import { MoreVertical, CreditCard, Pencil } from "lucide-react"
-import React, {useState, useEffect, useRef} from "react"
+import { MoreVertical, CreditCard, Pencil, Clock3 } from "lucide-react"
+import React, { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 
 
 function AppointmentActions(
-{
-    appointmentDetails={}
-}) {
+    {
+        appointmentDetails = {}
+    }) {
 
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef(null);
@@ -14,6 +14,9 @@ function AppointmentActions(
 
     // Close menu when clicking outside
     useEffect(() => {
+
+        
+
         function handleClickOutside(event) {
             if (
                 menuRef.current &&
@@ -33,11 +36,6 @@ function AppointmentActions(
         };
     }, []);
 
-    const handleNavigation = (path) => {
-        setIsOpen(false);
-        navigate(path);
-    };
-
 
 
     return (
@@ -56,27 +54,7 @@ function AppointmentActions(
 
             {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
-
-                    <button
-                        type="button"
-                        onClick={() =>
-                        (
-                            navigate("/update-appointment",
-                                {
-                                    state: { appointmentDetails }
-                                }
-                            ),
-                            setIsOpen(false)
-                        )
-                        }
-                        className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
-                    >
-                        <CreditCard size={17} />
-                        Update Payment
-                    </button>
-
-                    <div className="h-px bg-gray-100" />
+                <div className="absolute  right-0 top-full mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
 
                     <button
                         type="button"
@@ -95,6 +73,30 @@ function AppointmentActions(
                         <Pencil size={17} />
                         Update Details
                     </button>
+
+                    <div className="h-px bg-gray-100" />
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                        (
+                            navigate("/update-appointment",
+                                {
+                                    state: 
+                                    { 
+                                        appointmentDetails, isForTimeUpdation: true 
+                                    }
+                                }
+                            ),
+                            setIsOpen(false)
+                        )
+                        }
+                        className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                    >
+                        <Clock3 size={17} />
+                        Update Times
+                    </button>
+
 
                 </div>
             )}

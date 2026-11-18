@@ -11,6 +11,7 @@ import { Loading } from "../../utils/Loading";
 import { CustomButton } from "../../utils/CustomButton";
 import { ErrorMessage } from "../../utils/ErrorMessage";
 import { AppointmentCards } from "./AppointmetCards";
+import { useNavigate } from "react-router-dom";
 
 let startingDefault = new Date()
 let endingDefault = new Date()
@@ -69,12 +70,24 @@ const sessionOptions =
         label: "Dry-Needling"
       },
   ]
+const dateFilterOptions =
+    [
+      {
+        value: false,
+        label: "Customized Date"
+      },
+      {
+        value: true,
+        label: "All Dates"
+      },
+  ]
 
 
 
 const GeneralSearcher = (
   {
 
+    showProfile = false,
     showPatientName = false,
     showEmail = false,
     showSelectDoctor = false,
@@ -86,6 +99,10 @@ const GeneralSearcher = (
 
   const [startingDate, setStartingDate] = useState(startingDefault.toLocaleDateString('en-CA'));
   const [endingDate, setEndingDate] = useState(endingDefault.toLocaleDateString('en-CA'));
+  const navigate = useNavigate()
+  const [dateFilterState, setDateFilterState] = useState(false)
+  
+
   
 
   const { register, handleSubmit, formState: { errors } } = useForm()
@@ -93,8 +110,6 @@ const GeneralSearcher = (
   const 
   {
     userData,
-    isAuthorized,
-    isLoaing
   }
   = useSelector(state => state.userReducer.userInfo)
 
@@ -144,17 +159,23 @@ const GeneralSearcher = (
       }
     }
 
+    if(!dateFilterState)
+    {
+      targettedFields = 
+      {
+        ...targettedFields,
+        starting: startingDate,
+        ending: endingDate
+      }
+      
+    }
+
 
     console.log("targettedFields: ", targettedFields);
 
 
 
-    await request("/appointments/searcher", "post",
-      {
-        ...targettedFields,
-        starting: startingDate,
-        ending: endingDate
-      })
+    await request("/appointments/searcher", "post", targettedFields)
 
 
 
@@ -196,15 +217,33 @@ const GeneralSearcher = (
               Advanced Search
             </h2>
             <p className="mt-1 text-sm text-gray-500">
-              Apply filters to find the records you need.
-            </p>
+                Apply filters to find the records you need.
+              </p>
+            </div>
           </div>
-        </div>
 
-        <span className="w-fit rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-medium text-gray-500">
-          Search Filters
-        </span>
-      </div>
+          {
+            showProfile &&
+            (
+              <div>
+                <CustomButton
+                  isAllowedDefaultClasses={false}
+                  classes="inline-flex items-center justify-center gap-2
+                  rounded-xl bg-emerald-700 px-4 py-2.5
+                  text-sm font-semibold text-white
+                  shadow-sm transition-all duration-200
+                  hover:bg-emerald-800 hover:shadow-md
+                  active:scale-[0.97]
+                  focus:outline-none focus:ring-2
+                  focus:ring-emerald-500 focus:ring-offset-2
+                  w-full sm:w-auto"
+                  name="Profile Searcher"
+                  onClick={() => navigate("/profile-searcher")}
+                />
+              </div>
+            )
+          }
+        </div>
 
       <br />
       {/* Search Fields */}
@@ -237,11 +276,12 @@ const GeneralSearcher = (
                   />
 
                   <input
-                    max={endingDate}
-                    type="date"
-                    value={startingDate}
-                    onChange={(e) => setStartingDate?.(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-700 outline-none transition hover:border-emerald-400 hover:bg-white hover:ring-2 hover:ring-emerald-100"
+                  disabled={dateFilterState}
+                  max={endingDate}
+                  type="date"
+                  value={startingDate}
+                  onChange={(e) => setStartingDate?.(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-700 outline-none transition hover:border-emerald-400 hover:bg-white hover:ring-2 hover:ring-emerald-100"
                   />
                 </div>
               </label>
@@ -258,16 +298,31 @@ const GeneralSearcher = (
                   />
 
                   <input
-                    min={startingDate}
-                    type="date"
-                    value={endingDate}
-                    onChange={(e) => setEndingDate?.(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-700 outline-none transition hover:border-emerald-400 hover:bg-white hover:ring-2 hover:ring-emerald-100"
+                  disabled={dateFilterState}
+                  min={startingDate}
+                  type="date"
+                  value={endingDate}
+                  onChange={(e) => setEndingDate?.(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-700 outline-none transition hover:border-emerald-400 hover:bg-white hover:ring-2 hover:ring-emerald-100"
                   />
                 </div>
               </label>
             </div>
           </div>
+
+          <br />
+          <div className="min-w-0">
+            <SelectInput
+            onChange={() => setDateFilterState(prev => !prev)}
+            defaultValue={false}
+            isRequired={false}
+            label="Date Filters"
+            name="dateFilter"
+            options={dateFilterOptions}
+            />
+          </div>
+
+
         </div>
       </div>
 

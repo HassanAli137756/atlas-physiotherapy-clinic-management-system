@@ -10,16 +10,17 @@ const updateTimeStatus = asyncHandler( async (req, res) =>
     const 
     {
         updatingTime,
-        day
+        day,
+        doctorId
     } = req.body
     
 
-    if(!updatingTime?.trim().length > 0 || !day?.trim().length > 0)
+    if(!updatingTime?.length > 0 || !day?.trim().length > 0 || !doctorId)
     {
         throw new APIError(403, "Please provide all required fields")
     }
     
-    const DBDoctor = await User.findById(user._id).select("-password -refreshToken -receptionistField -doctorField.onDuty -avatarPublicID")
+    const DBDoctor = await User.findById(doctorId).select("-password -refreshToken -receptionistField -doctorField.onDuty -avatarPublicID")
     
     if(!DBDoctor._id)
     {
@@ -34,23 +35,31 @@ const updateTimeStatus = asyncHandler( async (req, res) =>
             "thursday",
             "friday",
             "saturday",
-        ].every(field => field !== day)
+        ].every(field => field !== day?.toLowerCase())
     ) {
         throw new APIError(400, "Please provide correct day")
     }
 
-    const targettedTimes = DBDoctor.doctorField.times[day] || []
+    const targettedTimes = DBDoctor.doctorField.times?.[day.toLowerCase()] || []
 
-    if(targettedTimes.some(field => !field.availability))
+
+    targettedTimes.map(DBtime =>
     {
-        throw new APIError(400, "Status can't be changed as booked by a patient")
+        updatingTime.map(givenTime =>
+        {
+            if (DBtime.time === givenTime.time) {
+                if(!(DBtime.availability === givenTime.availability))
+                {
+                    throw new APIError(400, "A time has recently booked by an user, please refresh your page and then try again")
+                }
+            }
+        }
+        )
     }
+    )
 
-    if (targettedTimes.every(field => field.time !== updatingTime)) {
-        throw new APIError(400, "Given time is not included in provided day")
-    }
 
-    DBDoctor.doctorField.times[day] = DBDoctor.doctorField.times[day].map(time => (time.time == updatingTime ? ({...time, status: !time.status}) : time))
+    DBDoctor.doctorField.times[day.toLowerCase()] = updatingTime
 
 
     await DBDoctor.save({validateBeforeSave: false})

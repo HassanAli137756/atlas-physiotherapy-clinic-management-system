@@ -12,17 +12,20 @@ const UserSchema = new Schema(
         {
             type: String,
             required: true,
-            unique: true
+            unique: true,
+            trim: true
         },
         fullName:
         {
             type: String,
-            required: true
+            required: true,
+            trim: true
         },
         email:
         {
             type: String,
-            required: true
+            required: true,
+            trim: true
         },
         password:
         {
@@ -36,7 +39,8 @@ const UserSchema = new Schema(
         cellNo:
         {
             type: String,
-            required: true
+            required: true,
+            unique: true,
         },
         refreshToken:
         {
@@ -208,7 +212,7 @@ UserSchema.methods.isPasswordCorrect = async function (password) {
 
 
 UserSchema.methods.generateAccessToken = async function () {
-    return await jwt.sign(
+    return  jwt.sign(
         {
             _id: this._id,
             email: this.email,
@@ -224,7 +228,7 @@ UserSchema.methods.generateAccessToken = async function () {
 }
 
 UserSchema.methods.generateRefreshToken = async function () {
-    return await jwt.sign(
+    return  jwt.sign(
         {
             _id: this._id,
             role: this.role

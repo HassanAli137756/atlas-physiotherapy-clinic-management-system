@@ -2,6 +2,7 @@
 import React from "react"
 
 const SelectInput = ({
+  isDisabled=false,
   label,
   defaultValue="",
   name,
@@ -38,12 +39,13 @@ const SelectInput = ({
       )}
 
       <select
+        disabled={isDisabled}
         defaultValue={defaultValue}
         {...fields}
         id={name}
         onChangeCapture={(e) => (
           onChange?.(e.target.value),
-          fields.onChange?.(e)
+          fields?.onChange?.(e)
         )}
         {...props}
         className={`

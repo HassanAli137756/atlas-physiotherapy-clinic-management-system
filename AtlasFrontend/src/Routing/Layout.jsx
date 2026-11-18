@@ -32,14 +32,12 @@ function Layout() {
 
 
     useEffect(() => {
-        fetchUser()
+        if(window.navigator.onLine)
+        {
+            fetchUser()
+        }
     }, [])
 
-
-    useEffect(() => {
-            
-
-    }, [userInfo])
 
     useEffect(() => {
         
