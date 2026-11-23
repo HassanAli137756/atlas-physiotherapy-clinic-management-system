@@ -11,7 +11,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { SelectInput } from '../utils/CustomSelectInput'
 import { TimeSelection } from '../utils/Times'
 import { ScreenBlankError } from '../utils/ScreenBlankError'
-import {useLocation} from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
+import { CalendarDays, Clock3, CreditCard } from 'lucide-react'
 const sessionTypes =
     [
         {
@@ -56,6 +57,18 @@ const paymentStatusOptions =
         }
     ]
 
+const bookingScheduleOptions =
+    [
+        {
+            label: "Select Booking Date(if not record appointment for current week)",
+            value: true
+        },
+        {
+            label: "Current Week",
+            value: false
+        }
+    ]
+
 const daysOptions = [
     {
         value: "monday",
@@ -97,18 +110,19 @@ function AppointmentForm(
     const [selectedDoctor, setSelectedDoctor] = useState()
     const [msg, setMsg] = useState("")
     const [doctor, setDoctors] = useState([])
-    const [date, setDate] = useState(new Date())
+    const [date, setDate] = useState(new Date().toLocaleDateString("en-CA"))
     const [doctorId, setDoctorId] = useState(null)
     const [times, setTimes] = useState({})
-    let { data, error, loading, request, setError, setData, setLoading } = useAxios()
+    const [bookingByDate, setBookingByDate] = useState(false)
+    let { data, error, loading, request, setError } = useAxios()
     const [selectedDay, setSelectedDay] = useState(new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase())
-    const {state} = useLocation()
+    const { state } = useLocation()
 
 
     const givenDoctor = providedDoctor || state?.doctorId
 
     console.log("state: ", state);
-    
+
 
     const removeMsg = () => {
         setTimeout(() => {
@@ -130,8 +144,8 @@ function AppointmentForm(
     const bookTime = async (formData) => {
         const profileId = role == "patient" ? RTKUser?.userData?.userProfileId : state?.profileId
 
-        console.log("state: ", state);
-        
+        console.log("formData: ", formData);
+
 
 
 
@@ -144,26 +158,42 @@ function AppointmentForm(
                 doctorId,
                 formData?.["patientName"],
                 formData?.["cellNo"],
-                formData?.["day"],
-                formData?.["time"],
             ].some(field => !field || field?.trim() == "")
         ) {
             setError("Please provide all required fields without extra blank spaces")
             return;
         }
 
+        if(bookingByDate)
+        {
+            if(!date)
+            {
+                setError("Please select a valid date")
+                return;
+            }
+        }
+        else
+        {
+            if(!formData?.["day"] && !formData?.["time"])
+            {
+                setError("Please select a day and a time to book appointment")
+                return;
+            }
+        }
+
         formData =
         {
             ...formData,
             doctor: doctorId,
-            date: date,
+            date: new Date(date),
             profileId: profileId,
-            
+            isForRecord: bookingByDate
+
         }
 
         console.log("formData: ", formData);
-        
-        
+
+
 
         await request("/appointments/add-appointment", "post", formData)
 
@@ -212,7 +242,7 @@ function AppointmentForm(
 
 
 
-        setDate(presentDate)
+        setDate(presentDate.toLocaleDateString("en-CA"))
 
     }, [selectedDay])
 
@@ -251,116 +281,78 @@ function AppointmentForm(
                     (<Loading />)
                 }
 
-                <TextInput
-                    defaultValue={state?.fullName || (role == "patient" ? RTKUser?.userData?.fullName : "")}
-                    errors={errors}
-                    name={"patientName"}
-                    register={register}
-                    lable='Patient Name'
-                    placeholder="Enter patient's name"
-                />
+                <section className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm">
 
-                <br />
-
-                <TextInput
-                    defaultValue={state?.email || (role == "patient" ?  RTKUser?.userData?.email : "" )}
-                    errors={errors}
-                    name={"email"}
-                    isRequired={false}
-                    register={register}
-                    lable='Email'
-                    placeholder="Enter patient's email"
-                />
-                <br />
-
-                <TextInput
-                    defaultValue={state?.cellNo || (role == "patient" ?  RTKUser?.userData?.cellNo : "")}
-                    errors={errors}
-                    name={"cellNo"}
-                    register={register}
-                    lable='Phone Number'
-                    placeholder="Enter patient's phone number"
-                />
-                <br />
-
-                <TextInput
-                    defaultValue={state?.diagnoses}
-                    isRequired={false}
-                    errors={errors}
-                    name={"diagnoses"}
-                    register={register}
-                    lable='Diagnoses'
-                    placeholder="Briefly describe problem or diseases of patient"
-                />
-                <br />
-
-                {
-                    RTKUser?.userData?.role !== "patient" &&
-                    (
-                        <div>
-                            <TextInput
-                                type='Number'
-                                defaultValue={state?.payable || 1000}
-                                isRequired={false}
-                                errors={errors}
-                                name={"payable"}
-                                register={register}
-                                lable='Payable Amount'
-                                placeholder="Enter payable amount"
-                            />
-                            <br />
-
-                            <TextInput
-                                defaultValue={state?.paid}
-                                type='Number'
-                                isRequired={false}
-                                errors={errors}
-                                name={"paid"}
-                                register={register}
-                                lable='Paid Amount'
-                                placeholder="Enter paid amount"
-                            />
-                            <br />
-
-
-                            <SelectInput
-                                defaultValue={state?.paymentStatus || 'pending'}
-                                options={paymentStatusOptions}
-                                error={errors}
-                                label={"Payment Status"}
-                                name={"paymentStatus"}
-                                register={register}
-                                placeholder='Select if patient payment pending or paid'
-                            />
-                            <br />
-
-                            <SelectInput
-                                defaultValue={state?.treatmentStatus || 'pending'}
-                                options={statusOptions}
-                                error={errors}
-                                label={"Appointment Status"}
-                                name={"status"}
-                                register={register}
-                                placeholder='Select an appointment status'
-                            />
-                            <br />
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                            <CalendarDays size={21} />
                         </div>
-                    )
-                }
+
+                        <div>
+                            <h2 className="text-base sm:text-lg font-semibold text-gray-800">
+                                Appointment Details
+                            </h2>
+                            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                                Patient and treatment information
+                            </p>
+                        </div>
+                    </div>
+                    <TextInput
+                        defaultValue={state?.fullName || (role == "patient" ? RTKUser?.userData?.fullName : "")}
+                        errors={errors}
+                        name={"patientName"}
+                        register={register}
+                        lable='Patient Name'
+                        placeholder="Enter patient's name"
+                    />
+
+                    <br />
+
+                    <TextInput
+                        defaultValue={state?.email || (role == "patient" ? RTKUser?.userData?.email : "")}
+                        errors={errors}
+                        name={"email"}
+                        isRequired={false}
+                        register={register}
+                        lable='Email'
+                        placeholder="Enter patient's email"
+                    />
+                    <br />
+
+                    <TextInput
+                        defaultValue={state?.cellNo || (role == "patient" ? RTKUser?.userData?.cellNo : "")}
+                        errors={errors}
+                        name={"cellNo"}
+                        register={register}
+                        lable='Phone Number'
+                        placeholder="Enter patient's phone number"
+                    />
+                    <br />
+
+                    <TextInput
+                        defaultValue={state?.diagnoses}
+                        isRequired={false}
+                        errors={errors}
+                        name={"diagnoses"}
+                        register={register}
+                        lable='Diagnoses'
+                        placeholder="Briefly describe problem or diseases of patient"
+                    />
+                    <br />
 
 
-                <SelectInput
-                    defaultValue={state?.forSession || sessionTypes[0]?.value}
-                    options={sessionTypes}
-                    error={errors}
-                    label={"Select Session Type"}
-                    name={"forSession"}
-                    register={register}
-                    placeholder='Select a session type for treatement'
-                />
+                    <SelectInput
+                        defaultValue={state?.forSession || sessionTypes[0]?.value}
+                        options={sessionTypes}
+                        error={errors}
+                        label={"Select Session Type"}
+                        name={"forSession"}
+                        register={register}
+                        placeholder='Select a session type for treatement'
+                    />
 
-                <br />
-                <div className=' grid grid-cols-1 sm:grid-cols-2 sm:gap-5 gap-5'>
+                    <br />
+
                     {
                         doctor?.length > 0 &&
                         <SelectInput
@@ -374,32 +366,211 @@ function AppointmentForm(
                             placeholder='Select a doctor for your treatment'
                         />
                     }
-                    <SelectInput
-                        defaultValue={state?.day || selectedDay.toLowerCase()}
-                        onChange={(day) => (setSelectedDay(day))}
-                        options={daysOptions}
-                        error={errors}
-                        label={"Select Day"}
-                        name={"day"}
-                        register={register}
-                        placeholder='Select a day for your treatment'
-                    />
+
+                </section>
+
+                <br />
+
+                {
+                    RTKUser?.userData?.role !== "patient" &&
+                    (
+                        <section className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
+                                    <CreditCard size={21} />
+                                </div>
+
+                                <div>
+                                    <h2 className="text-base sm:text-lg font-semibold text-gray-800">
+                                        Payment Details
+                                    </h2>
+                                    <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                                        Appointment charges and payment information
+                                    </p>
+                                </div>
+                            </div>
+                            <div>
+                                <TextInput
+                                    type='Number'
+                                    defaultValue={state?.payable || 1000}
+                                    isRequired={false}
+                                    errors={errors}
+                                    name={"payable"}
+                                    register={register}
+                                    lable='Payable Amount'
+                                    placeholder="Enter payable amount"
+                                />
+                                <br />
+
+                                <TextInput
+                                    defaultValue={state?.paid}
+                                    type='Number'
+                                    isRequired={false}
+                                    errors={errors}
+                                    name={"paid"}
+                                    register={register}
+                                    lable='Paid Amount'
+                                    placeholder="Enter paid amount"
+                                />
+                                <br />
 
 
-                </div>
+                                <SelectInput
+                                    defaultValue={state?.paymentStatus || 'pending'}
+                                    options={paymentStatusOptions}
+                                    error={errors}
+                                    label={"Payment Status"}
+                                    name={"paymentStatus"}
+                                    register={register}
+                                    placeholder='Select if patient payment pending or paid'
+                                />
+                                <br />
+
+                                <SelectInput
+                                    defaultValue={state?.treatmentStatus || 'pending'}
+                                    options={statusOptions}
+                                    error={errors}
+                                    label={"Appointment Status"}
+                                    name={"status"}
+                                    register={register}
+                                    placeholder='Select an appointment status'
+                                />
+                                <br />
+                            </div>
+                        </section>
+                    )
+                }
+
                 <br />
 
 
-                <TimeSelection
-                    defaultTime={state?.time}
-                    date={date.toLocaleDateString("en-US", { dateStyle: "medium" })}
-                    errors={errors}
-                    name='time'
-                    register={register}
-                    selectedDay={selectedDay}
-                    times={times}
 
-                />
+                <section className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">
+                            <Clock3 size={21} />
+                        </div>
+
+                        <div>
+                            <h2 className="text-base sm:text-lg font-semibold text-gray-800">
+                                Appointment Timings
+                            </h2>
+                            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                                Select your preferred appointment schedule
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+
+                        {
+                            RTKUser?.userData?.role !== "patient" &&
+                            (
+                                <div>
+                                    <SelectInput
+                                        defaultValue={bookingByDate}
+                                        onChange={() => (setBookingByDate(prev => !prev))}
+                                        options={bookingScheduleOptions}
+                                        error={errors}
+                                        label={"Booking Schedule"}
+                                        name={"bookingSchedule"}
+                                        register={register}
+                                        placeholder='Select a booking date according to your need'
+                                    />
+                                    <br />
+                                </div>
+                            )
+                        }
+
+
+                        {
+                        RTKUser?.userData?.role !== "patinet"
+                        ? !bookingByDate ?
+                            <SelectInput
+                                defaultValue={state?.day || selectedDay.toLowerCase()}
+                                onChange={(day) => (setSelectedDay(day))}
+                                options={daysOptions}
+                                error={errors}
+                                label={"Select Day"}
+                                name={"day"}
+                                register={register}
+                                placeholder='Select a day for your treatment'
+                            />
+                            :
+                            <div>
+                                <div>
+                                    <label className="p-2 block text-sm font-medium text-gray-700">
+                                    Select Date
+
+                                    <div className="relative">
+                                        <Clock3
+                                            size={17}
+                                            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                                        />
+
+                                        <input
+                                            type="date"
+                                            value={date}
+                                            onChange={(e) => setDate(e.target.value)}
+                                            className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-700 outline-none transition hover:border-emerald-400 hover:bg-white hover:ring-2 hover:ring-emerald-100"
+                                        />
+                                    </div>
+                                </label>
+                                <br />
+                                <div>
+                                    <TextInput
+                                    errors={errors}
+                                    register={register}
+                                    defaultValue='05:00:PM'
+                                    isRequired={true}
+                                    lable='Time'
+                                    placeholder='Please enter time according to time format of all appointments'
+                                    name={"time"}
+                                    />
+                                </div>
+                                </div>
+                            </div>
+                        :
+                        <SelectInput
+                            defaultValue={state?.day || selectedDay.toLowerCase()}
+                            onChange={(day) => (setSelectedDay(day))}
+                            options={daysOptions}
+                            error={errors}
+                            label={"Select Day"}
+                            name={"day"}
+                            register={register}
+                            placeholder='Select a day for your treatment'
+                        />
+                        }
+
+
+                        <br />
+
+
+                        {
+                            !bookingByDate &&
+                            <TimeSelection
+                            defaultTime={state?.time}
+                            date={new Date(date).toLocaleDateString("en-US", { dateStyle: "medium" })}
+                            errors={errors}
+                            name='time'
+                            register={register}
+                            selectedDay={selectedDay}
+                            times={times}
+
+                        />
+                        }
+
+                    </div>
+
+                </section>
+
+                <br />
+
+
+
+
 
                 <div className='flex mt-5 justify-end'>
                     <div className='w-1/2'>

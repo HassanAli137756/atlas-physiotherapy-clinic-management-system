@@ -1,90 +1,110 @@
 
-import React, { useState, useEffect, useRef } from "react";
-import { MoreVertical, CreditCard, Pencil } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
+import {
+  CalendarDays,
+  CreditCard,
+  Clock3,
+} from "lucide-react";
 
-function AppointmentActions({ appointmentId }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const menuRef = useRef(null);
-  //const navigate = useNavigate();
-  console.log("menuRef: ", menuRef.current);
-  
-  // Close menu when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target)
-      ) {
-        setIsOpen(false);
-      }
-    }
+const App = ({ children }) => {
 
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleClickOutside
-      );
-    };
-  }, []);
-
-  const handleNavigation = (path) => {
-    setIsOpen(false);
-    //navigate(path);
-  };
+  const sections = [
+    {
+      title: "Appointment Details",
+      description: "Patient and treatment information",
+      icon: CalendarDays,
+    },
+    {
+      title: "Payment Details",
+      description: "Appointment charges and payment information",
+      icon: CreditCard,
+    },
+    {
+      title: "Appointment Timings",
+      description: "Select your preferred appointment schedule",
+      icon: Clock3,
+    },
+  ];
 
   return (
-    <div ref={menuRef} className="relative inline-block">
+    <form className="w-full space-y-6">
 
-      {/* Three Dots Button */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-lg text-gray-500 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
-        aria-label="Appointment actions"
-        aria-expanded={isOpen}
-      >
-        <MoreVertical size={21} />
-      </button>
+      {/* Appointment Details */}
+      <section className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm">
 
-      {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+            <CalendarDays size={21} />
+          </div>
 
-          <button
-            type="button"
-            onClick={() =>
-              handleNavigation(
-                `/appointments/${appointmentId}/payment`
-              )
-            }
-            className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
-          >
-            <CreditCard size={17} />
-            Update Payment
-          </button>
-
-          <div className="h-px bg-gray-100" />
-
-          <button
-            type="button"
-            onClick={() =>
-              handleNavigation(
-                `/appointments/${appointmentId}/update`
-              )
-            }
-            className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
-          >
-            <Pencil size={17} />
-            Update Details
-          </button>
-
+          <div>
+            <h2 className="text-base sm:text-lg font-semibold text-gray-800">
+              Appointment Details
+            </h2>
+            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+              Patient and treatment information
+            </p>
+          </div>
         </div>
-      )}
-    </div>
-  );
-}
 
-export {AppointmentActions};
+        {/* <div className="space-y-5">
+          {children[0]}
+        </div>
+ */}
+      </section>
+
+
+      {/* Payment Details */}
+      <section className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
+            <CreditCard size={21} />
+          </div>
+
+          <div>
+            <h2 className="text-base sm:text-lg font-semibold text-gray-800">
+              Payment Details
+            </h2>
+            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+              Appointment charges and payment information
+            </p>
+          </div>
+        </div>
+{/* 
+        <div className="space-y-5">
+          {children[1]}
+        </div>
+ */}
+      </section>
+
+
+      {/* Appointment Timings */}
+      <section className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">
+            <Clock3 size={21} />
+          </div>
+
+          <div>
+            <h2 className="text-base sm:text-lg font-semibold text-gray-800">
+              Appointment Timings
+            </h2>
+            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+              Select your preferred appointment schedule
+            </p>
+          </div>
+        </div>
+{/* 
+        <div className="space-y-5">
+          {children[2]}
+        </div> */}
+
+      </section>
+
+    </form>
+  );
+};
+
+export default App;

@@ -1,12 +1,13 @@
 
 import React, { useEffect, useState } from "react";
-import { Clock3, CheckCircle2, XCircle } from "lucide-react";
+import { Clock3, CheckCircle2, XCircle, Flag } from "lucide-react";
 import { useAxios } from "../../useAxios";
 import { Loading } from "../../utils/Loading";
 import { ErrorMessage } from "../../utils/ErrorMessage";
 import { ScreenBlankError } from "../../utils/ScreenBlankError";
 import { CustomButton } from "../../utils/CustomButton";
 import {useNavigate} from 'react-router-dom'
+import { DeleteDoctorTime } from "./DeleteDoctorTime";
 
 const DoctorTimeSlots = 
 (
@@ -50,7 +51,17 @@ const DoctorTimeSlots =
         setTimeSlots(prev =>
             prev.map((slot, i) =>
                 i === index
-                    ? { ...slot, status: value === "true" }
+                    ? { ...slot, status: !Boolean(slot.status)/* value === "true" */ }
+                    : slot
+            )
+        );
+    };
+    
+    const handleAvailabilityStatusChange = (index, value) => {
+        setTimeSlots(prev =>
+            prev.map((slot, i) =>
+                i === index
+                    ? { ...slot, availability: !Boolean(slot.availability) }
                     : slot
             )
         );
@@ -64,34 +75,100 @@ const DoctorTimeSlots =
         .map((slot, index) => ({ ...slot, originalIndex: index }))
         .filter(slot => slot.availability === false || slot.status === false);
 
-    const TimeCard = ({ slot }) => (
+        
+    useEffect(() => {
+
+        if(!doctorId && !day)
+        {
+            setError("Doctor id or day is't provided")
+        }
+        else
+        {
+            setTimeSlots(times);
+        }
+        
+
+
+    }, [times]);
+
+
+    useEffect(() => {
+
+        if(!loading && data)
+        {
+            setMsg("Successfully updated times")
+            removeMsg(true)
+        }
+
+
+    }, [data]);
+
+
+
+    const TimeCard = ({ slot, showDeleteButton=false }) => (
         <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm hover:border-emerald-200 transition">
 
             {/* Time */}
-            <div className="flex items-center gap-2 mb-4">
-                <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
-                    <Clock3 size={18} className="text-emerald-600" />
-                </div>
+            <div className="flex justify-between">
+                <div className="flex items-center gap-2 mb-4">
+                    <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
+                        <Clock3 size={18} className="text-emerald-600" />
+                    </div>
 
+                    <div>
+                        <p className="text-xs text-gray-400">Time</p>
+                        <h4 className="text-sm font-semibold text-gray-800">
+                            {slot.time}
+                        </h4>
+                    </div>
+                </div>
                 <div>
-                    <p className="text-xs text-gray-400">Time</p>
-                    <h4 className="text-sm font-semibold text-gray-800">
-                        {slot.time}
-                    </h4>
+                    {
+                        showDeleteButton &&
+                        <DeleteDoctorTime
+                        time={slot.time}
+                        day={day}
+                        doctorId={doctorId}
+                        />
+                    }
                 </div>
             </div>
 
             {/* Status Dropdown */}
             <div className="mb-3">
-                <label className="block text-xs font-medium text-gray-500 mb-1.5">
+                <div className="flex justify-start">
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5">
                     Status
-                </label>
+                    </label>
+                </div>
 
                 <select
-                    value={String(slot.status)}
-                    disabled={!slot.availability}
+                    value={Boolean(slot.status)}
                     onChange={(e) =>
                         handleStatusChange(
+                            slot.originalIndex,
+                            e.target.value
+                        )
+                    }
+                    className="w-full text-sm px-3 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <option value="true">Available</option>
+                    <option value="false">Not Available</option>
+                </select>
+            </div>
+
+            {/* Status Dropdown */}
+            <div className="mb-3">
+                <div className="flex justify-start">
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5">
+                    Booking Status
+                    </label>
+                </div>
+
+                <select
+                    value={Boolean(slot.availability)}
+                    onChange={(e) =>
+                        handleAvailabilityStatusChange(
                             slot.originalIndex,
                             e.target.value
                         )
@@ -148,6 +225,7 @@ const DoctorTimeSlots =
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {slots.map(slot => (
                         <TimeCard
+                            showDeleteButton={slot?.availability}
                             key={slot.originalIndex}
                             slot={slot}
                         />
@@ -166,33 +244,6 @@ const DoctorTimeSlots =
 
 
     
-    useEffect(() => {
-
-        if(!doctorId && !day)
-        {
-            setError("Doctor id or day is't provided")
-        }
-        else
-        {
-            setTimeSlots(times);
-        }
-        
-
-
-    }, [times]);
-
-
-    useEffect(() => {
-
-        if(!loading && data)
-        {
-            setMsg("Successfully updated times")
-            removeMsg(true)
-        }
-
-
-    }, [data]);
-
   
 
     return (
@@ -233,6 +284,7 @@ const DoctorTimeSlots =
                 type="available"
             />
 
+            <br />
             {/* Unavailable Slots */}
             <TimeCategory
                 title="Unavailable Time Slots"

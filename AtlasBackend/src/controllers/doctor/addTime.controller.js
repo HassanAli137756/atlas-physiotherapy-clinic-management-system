@@ -11,14 +11,15 @@ const addTime = asyncHandler( async (req, res) =>
     const
     {
         newTime,
+        doctorId,
         day,
     } = req.body
 
-    const presentDate = new Date()
-    const addingDate = new Date()
+    console.log("body: ", req.body);
+    
 
 
-    if(!newTime?.trim().length > 0 || !day?.trim().length > 0)
+    if(!newTime?.trim().length > 0 || !day?.trim().length > 0 || !doctorId)
     {
         throw new APIError(403, "Please provide all required fields")
     }
@@ -33,14 +34,14 @@ const addTime = asyncHandler( async (req, res) =>
             "thursday",
             "friday",
             "saturday",
-        ].every(field => field !== day)
+        ].every(field => field !== day?.toLowerCase())
     )
     {
         throw new APIError(400, "Please provide correct day")
     }
     
     
-    const DBDoctor = await User.findById(user?._id).select("-password -refreshToken -receptionistField -doctorField.onDuty -avatarPublicID")
+    const DBDoctor = await User.findById(doctorId).select("-password -refreshToken -receptionistField -doctorField.onDuty -avatarPublicID")
     
     if(!DBDoctor?._id)
     {
@@ -48,12 +49,12 @@ const addTime = asyncHandler( async (req, res) =>
     }
 
 
-    if(DBDoctor.doctorField.times[day].some(field => field.time == newTime))
+    if(DBDoctor.doctorField.times[day?.toLowerCase()].some(field => field.time == newTime))
     {
         throw new APIError(400, "Given Time is already existed")
     }
 
-    DBDoctor.doctorField.times[day].push({availability: true, time: newTime})
+    DBDoctor.doctorField.times[day?.toLowerCase()].push({availability: true, status: true, time: newTime})
 
 
     await DBDoctor.save({validateBeforeSave: false})

@@ -5,7 +5,6 @@ import "./App.css"
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { store } from './Redux/store'
-import {AppointmentActions} from './App'
 import {Layout} from './Routing/Layout'
 import {Searcher} from './components/Searcher'
 
@@ -27,6 +26,9 @@ import {DoctorAppointments} from './components/Doctor/DoctorAppointments'
 import {DoctorHome} from './components/Doctor/DoctorHome'
 import {DoctorPayments} from './components/Doctor/DoctorPayments'
 import {TimeManagement} from './components/Doctor/TimeManagement'
+import { UpdateExistingTimes } from './components/GeneralComponents/UpdateExistingTime'
+import { AddNewTime } from './components/GeneralComponents/AddNewTime'
+
 
 
 import {ReceptionistLayout} from './Routing/ReceptionistLayout'
@@ -52,7 +54,7 @@ import { UpdateAppointment } from './components/UpdateAppointment'
 import { ProfileSearcher } from './components/ProfileSearcher'
 import { Settings } from './components/Settings'
 import { Profile } from './components/Profile'
-import { UpdateExistingTimes } from './components/Doctor/UpdateExistingTime'
+import App from './App'
 
 const router = createBrowserRouter(
 
@@ -108,6 +110,7 @@ const router = createBrowserRouter(
         <Route path="/doctor-payment" element={<DoctorPayments />} />
         <Route path="/doctor-time-management" element={<TimeManagement />} />
         <Route path="/update-existing-time" element={<UpdateExistingTimes />} />
+        <Route path="/add-new-time" element={<AddNewTime />} />
 
       </Route>
 
@@ -148,6 +151,6 @@ createRoot(
 ).render(
     <Provider store={store}>
     <RouterProvider router={router} />
-    {/* <AppointmentActions /> */}
+    {/* <App /> */}
     </Provider>
 )

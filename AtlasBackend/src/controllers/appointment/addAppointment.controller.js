@@ -52,7 +52,8 @@ const addAppointment = asyncHandler( async (req, res) =>
         profileId,
         payable=0,
         paid=0,
-        status="pending"
+        status="pending",
+        isForRecord=false
     } = req.body
 
     
@@ -66,7 +67,7 @@ const addAppointment = asyncHandler( async (req, res) =>
 
     
     if(
-        [patientName, doctor, time, date, forSession, cellNo, profileId, day]
+        [patientName, doctor, time, date, forSession, cellNo, profileId]
         .some(field => !field || field?.trim() == "")
     )
     {
@@ -75,39 +76,51 @@ const addAppointment = asyncHandler( async (req, res) =>
 
     }
 
+    if(!isForRecord && !day)
+    {
+        throw new APIError(400, "Please provide a valid day.")
+    }
+
     const DBDoctor = await User.findById(doctor).select("_id doctorField")
-
-    if(!DBDoctor?._id)
-    {
-        throw new APIError(500, "Failed to fetch doctor from database")
-    }
-
-    if(!DBDoctor?.doctorField?.onDuty)
-    {
-        throw new APIError(400, "Sorry to say your selected doctor is on leave")
-    }
-
-    const DBSelectedTime = DBDoctor.doctorField.times[day.toLowerCase()].filter(item => item.time == time)
-
-    
-
-
-    if(!DBSelectedTime[0]?.availability || !DBSelectedTime[0]?.status)
-    {
-        throw new APIError(400, "Your selected time is not available at that time")
-    }
-
-   
     const bookingDate = new Date(date)
-    const currentDate = new Date()
 
-    console.log("bookingDate: ", bookingDate, date);
-    
 
-    if(day?.toLowerCase() === "sunday" || bookingDate.toLocaleDateString("en-US", {weekday: "long"}).toLocaleLowerCase() == "sunday")
+    if (!isForRecord) 
     {
-        throw new APIError(400, "Sunday is off, please booked appointment on another day")
+
+
+        console.log("bookingDate: ", bookingDate, date);
+        
+
+        if (!DBDoctor?._id) {
+            throw new APIError(500, "Failed to fetch doctor from database")
+        }
+
+        if (!DBDoctor?.doctorField?.onDuty) {
+            throw new APIError(400, "Sorry to say your selected doctor is on leave")
+        }
+
+        const DBSelectedTime = DBDoctor.doctorField.times[day.toLowerCase()].filter(item => item.time == time)
+
+
+
+
+        if (!DBSelectedTime[0]?.availability || !DBSelectedTime[0]?.status) {
+            throw new APIError(400, "Your selected time is not available at that time")
+        }
+
+
+        if (day?.toLowerCase() === "sunday" || bookingDate.toLocaleDateString("en-US", { weekday: "long" }).toLocaleLowerCase() == "sunday") {
+            throw new APIError(400, "Sunday is off, please booked appointment on another day")
+        }
+
+
     }
+
+    
+   
+    
+    
 
 
 
@@ -126,7 +139,7 @@ const addAppointment = asyncHandler( async (req, res) =>
     
 
 
-    if(!cancellTimeLine || !sessionTimeLine )
+    if((!cancellTimeLine || !sessionTimeLine ) && !isForRecord)
     {
         throw new APIError(500, "Failed to generate times")
     }
@@ -149,11 +162,11 @@ const addAppointment = asyncHandler( async (req, res) =>
         status,
         times:
         {
-            cancellingTime: cancellTimeLine,
+            cancellingTime: isForRecord ? 0 : cancellTimeLine,
             date: bookingDate,
-            remainingTime: sessionTimeLine,
+            remainingTime: isForRecord ? 0 : sessionTimeLine,
             time: time,
-            timeOfUpdation: updationTimeLine
+            timeOfUpdation: isForRecord ? 0 : updationTimeLine
         },
         userProfileId: profileId,
         paymentSection:
@@ -169,9 +182,11 @@ const addAppointment = asyncHandler( async (req, res) =>
         throw new APIError(500, "Failed to book this time, try again")
     }
 
-    DBDoctor.doctorField.times[day?.toLowerCase()] = DBDoctor.doctorField.times[day?.toLowerCase()].map(item => (item.time == time ? {...item, availability: false} : item))
+    if (!isForRecord) {
+        DBDoctor.doctorField.times[day?.toLowerCase()] = DBDoctor.doctorField.times[day?.toLowerCase()].map(item => (item.time == time ? { ...item, availability: false } : item))
 
-    await DBDoctor.save({validateBeforeSave: false})
+        await DBDoctor.save({ validateBeforeSave: false })
+    }
 
     return res
     .status(201)

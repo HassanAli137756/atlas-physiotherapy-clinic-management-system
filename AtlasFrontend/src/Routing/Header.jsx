@@ -55,7 +55,7 @@ const Header = ({
             { label: "Payments", to: "/doctor-payment" },
           ]
         )
-        navigate("/doctor-home")
+        navigate("/update-existing-time")
       }
       else if (role == "receptionist") {
         setNavLinks(

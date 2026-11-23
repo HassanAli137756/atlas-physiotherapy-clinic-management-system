@@ -43,21 +43,6 @@ const updateTimeStatus = asyncHandler( async (req, res) =>
     const targettedTimes = DBDoctor.doctorField.times?.[day.toLowerCase()] || []
 
 
-    targettedTimes.map(DBtime =>
-    {
-        updatingTime.map(givenTime =>
-        {
-            if (DBtime.time === givenTime.time) {
-                if(!(DBtime.availability === givenTime.availability))
-                {
-                    throw new APIError(400, "A time has recently booked by an user, please refresh your page and then try again")
-                }
-            }
-        }
-        )
-    }
-    )
-
 
     DBDoctor.doctorField.times[day.toLowerCase()] = updatingTime
 

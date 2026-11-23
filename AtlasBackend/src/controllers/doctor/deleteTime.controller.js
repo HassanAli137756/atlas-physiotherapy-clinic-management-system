@@ -10,14 +10,15 @@ const deleteTime = asyncHandler(async (req, res) => {
     const 
     {
         deletingTime,
-        day
+        day,
+        doctorId
     } = req.body
 
     if (!deletingTime?.trim().length > 0 || !day?.trim().length > 0) {
         throw new APIError(403, "Please provide all required fields")
     }
 
-    const DBDoctor = await User.findById(user._id).select("-password -refreshToken -receptionistField -doctorField.onDuty -avatarPublicID")
+    const DBDoctor = await User.findById(doctorId).select("-password -refreshToken -receptionistField -doctorField.onDuty -avatarPublicID")
 
     if (!DBDoctor._id) {
         throw new APIError(403, "Failed to find doctor from database")
@@ -37,17 +38,30 @@ const deleteTime = asyncHandler(async (req, res) => {
         throw new APIError(400, "Please provide correct day")
     }
 
-    const targettedTimes = DBDoctor.doctorField.times[day] || []
+    let targettedTime = {}
 
-    if (targettedTimes.some(field => !field.availability)) {
-        throw new APIError(400, "Given time is booked by a patient which can't be deleted")
+
+    DBDoctor.doctorField.times?.[day]?.map(item =>
+    {
+        if(item.time == deletingTime)
+        {
+            targettedTime = item
+        }
     }
+    )
 
-    if (targettedTimes.every(field => field.time !== deletingTime )) {
+    if(!targettedTime?.time)
+    {
         throw new APIError(400, "Given time is not included in provided day")
     }
+    
 
-    DBDoctor.doctorField.times[day] = targettedTimes.filter(time => time.time !== deletingTime)
+    if(!targettedTime?.availability)
+    {
+        throw new APIError(400, "Now given time is booked by patient please again fetch fresh times.")
+    }
+    
+    DBDoctor.doctorField.times[day] = DBDoctor.doctorField.times[day].filter(time => time.time !== deletingTime)
 
 
     await DBDoctor.save({ validateBeforeSave: false })

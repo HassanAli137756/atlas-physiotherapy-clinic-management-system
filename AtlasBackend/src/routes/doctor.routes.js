@@ -38,12 +38,12 @@ doctorRouter.route("/update-doctor-duty-status").patch(authMiddleware, verifyRol
 
 
 // OKAY
-doctorRouter.route("/add-time").post(authMiddleware, verifyRole("doctor"), addTime)
+doctorRouter.route("/add-time").patch(authMiddleware, verifyRole("doctor"), addTime)
 
 
 
 // OKAY
-doctorRouter.route("/delete-time").delete(authMiddleware, verifyRole("doctor"), deleteTime)
+doctorRouter.route("/delete-time").patch(authMiddleware, verifyRole("doctor"), deleteTime)
 
 
 

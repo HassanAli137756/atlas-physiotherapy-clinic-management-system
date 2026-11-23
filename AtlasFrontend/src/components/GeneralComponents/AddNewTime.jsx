@@ -1,13 +1,12 @@
 
-import React, {useEffect, useState} from "react";
-import { Clock3, CalendarDays, ChevronDown } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { SelectInput } from "../../utils/CustomSelectInput";
 import { useAxios } from "../../useAxios";
 import { useSelector } from "react-redux";
 import { Loading } from "../../utils/Loading";
 import { CustomButton } from "../../utils/CustomButton";
 import { ErrorMessage } from "../../utils/ErrorMessage";
-import { DoctorTimeSlots } from "../GeneralComponents/DoctorTimes";
+import { AddNewTimeForm } from "./AddNewTimeForm";
 
 
 const daysOptions = [
@@ -38,17 +37,23 @@ const daysOptions = [
 ]
 
 
-const UpdateExistingTimes = () => {
+const AddNewTime = () => {
+
+    const presentDay = new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase()
     
-    const [selectedDay, setSelectedDay] = useState(new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase())
+    const [selectedDay, setSelectedDay] =
+    useState(
+        presentDay === "sunday" ? "monday" : presentDay
+    )
+
     const [targettedTimes, setTargettedTimes] = useState([])
 
     let { data, error, loading, request, setError, setData, setLoading } = useAxios()
-    const 
-    {
-        userData
-    }
-    = useSelector(state => state.userReducer.userInfo)
+    const
+        {
+            userData
+        }
+            = useSelector(state => state.userReducer.userInfo)
 
 
     const fetchDoctorTimes = async () => {
@@ -61,16 +66,12 @@ const UpdateExistingTimes = () => {
     }, [])
 
 
-    useEffect(() => 
-    {
-        if(data)
-        {
+    useEffect(() => {
+        if (data) {
 
-            Object.keys(data).map(key =>
-            {
-                
-                if(key == selectedDay.toLocaleLowerCase())
-                {
+            Object.keys(data).map(key => {
+
+                if (key == selectedDay.toLocaleLowerCase()) {
                     setTargettedTimes(data?.[selectedDay.toLocaleLowerCase()])
                 }
             }
@@ -78,20 +79,18 @@ const UpdateExistingTimes = () => {
 
 
 
-            
+
         }
 
-        
+
     }, [data, selectedDay])
 
-    
-    console.log(data);
 
-    console.log("targetted times: ", targettedTimes);
-    
+
+
 
     return (
-        <div className="w-full space-y-5">
+        <div  className="min-h-screen bg-[#f4f8f7] p-4 sm:p-6 lg:p-8">
 
             {
                 loading &&
@@ -113,60 +112,55 @@ const UpdateExistingTimes = () => {
             }
 
             {/* Header */}
-            <div>
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
-                    Time Management
-                </h2>
+            <div className="mb-6">
+
+
+                <h1 className="text-2xl font-bold text-gray-900">
+                    Add New Time
+                </h1>
+
                 <p className="text-sm text-gray-500 mt-1">
-                    Manage your availability and working hours.
+                    Add a new available appointment time to your schedule.
                 </p>
+
             </div>
 
             {/* Day Selection */}
             <div className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm">
 
-                    <SelectInput
+                <SelectInput
                     defaultValue={selectedDay.toLowerCase()}
                     onChange={(day) => (setSelectedDay(day))}
                     options={daysOptions}
                     label={"Select Day"}
                     placeholder='Select a day for to see time slots'
-                    />
+                />
 
 
             </div>
+            <br />
 
             {/* Time Slots */}
             <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
 
-                <div className="p-4 sm:p-5 border-b border-gray-100">
-                    <h3 className="font-semibold text-gray-800">
-                        Time Slots
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-1">
-                        Manage availability for the selected day.
-                    </p>
-                </div>
 
                 <div className="p-5">
 
-                {
-                    targettedTimes.length > 0 &&
-                    <div>
-                        <DoctorTimeSlots
-                        day={selectedDay}
-                        doctorId={userData?._id}
-                        times={targettedTimes}
-                        />
-                    </div>
-                }
-                    
+                        <div>
+                            <AddNewTimeForm
+                            day={selectedDay.toLocaleLowerCase()}
+                            doctorId={userData?._id}
+                            providedTimes={targettedTimes}
+                            />
+                        </div>
                 </div>
 
             </div>
+            
 
         </div>
     );
 };
 
-export  {UpdateExistingTimes};
+export { AddNewTime };
+

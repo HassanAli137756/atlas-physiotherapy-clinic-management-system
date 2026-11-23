@@ -4,6 +4,7 @@ import { ErrorMessage } from "./ErrorMessage";
 
 const TimeSelection = ({
 isForUpdation=false,
+isDisabled=false,
 defaultTime="",
 date="",
 errors,
@@ -95,6 +96,7 @@ const dayTimes = times?.[day] || [];
                     className="group relative cursor-pointer"
                   >
                     <input
+                      disabled={isDisabled}
                       defaultChecked={item.time == defaultTime}
                       type="radio"
                       value={defaultTime || item.time}
