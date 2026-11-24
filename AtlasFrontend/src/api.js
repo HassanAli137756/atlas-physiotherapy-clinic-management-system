@@ -1,8 +1,9 @@
 import axios from 'axios'
+import { BACKEND_URL } from './conf/conf';
 
-const api = await axios.create(
+const api = axios.create(
 {
-    baseURL: "http://localhost:3000/physiotherapy/v1",
+    baseURL: BACKEND_URL/* "http://localhost:3000/physiotherapy/v1" */,
     withCredentials: true
 }
 )
