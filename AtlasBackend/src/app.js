@@ -8,7 +8,7 @@ import { doctorRouter } from './routes/doctor.routes.js'
 import { adminRouter } from './routes/admin.routes.js'
 import { receptionistRouter } from './routes/receptionist.routes.js'
 
-const app = express()
+export const app = express()
 
 app.use(cors(
 {
@@ -46,5 +46,3 @@ app.use("/physiotherapy/v1/admin", adminRouter)
 app.use("/physiotherapy/v1/receptionist", receptionistRouter)
 
 app.use(errorMiddleware)
-
-export {app}
