@@ -197,6 +197,7 @@ AtlasPhysiotherapy/
 │       │   ├── GeneralComponents/
 │       │   ├── Patient/
 │       │   └── Receptionist/
+│       ├── conf/
 │       ├── forms/
 │       ├── Redux/
 │       ├── Routing/
@@ -204,7 +205,11 @@ AtlasPhysiotherapy/
 │       ├── api.js
 │       ├── App.css
 │       ├── App.jsx
+│       ├── envSample.env
 │       └── index.css
+│       └── main.jsx
+│       └── useAxios.js
+│       └── vercel.json
 │
 ├── AtlasBackend/
 │   ├── public/
@@ -223,6 +228,7 @@ AtlasPhysiotherapy/
 │       ├── utils/
 │       ├── app.js
 │       ├── constants.js
+│       ├── envSample.js
 │       └── index.js
 │
 └── README.md
