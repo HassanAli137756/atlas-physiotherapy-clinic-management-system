@@ -6,7 +6,7 @@ import { connectDB } from "./db/connnectDB.js";
 connectDB()
 .then((res) =>
 {
-    app.listen(process.env.PORT || 4000, () =>
+    app.listen(process.env.LOCALHOST_PORT || 4000, () =>
     {
         console.log("Server listing at port ", process.env.PORT);
         
