@@ -1,4 +1,6 @@
 import { Appointment } from "../../models/Appointment.model.js";
+import { Package } from "../../models/Package.model.js";
+import { Payment } from "../../models/Payment.model.js";
 import { Profile } from "../../models/Profile.model.js";
 import { User } from "../../models/User.model.js";
 import {APIError} from '../../utils/apiError.js'
@@ -53,8 +55,12 @@ const addAppointment = asyncHandler( async (req, res) =>
         payable=0,
         paid=0,
         status="pending",
-        isForRecord=false
+        isForRecord=false,
     } = req.body
+
+    const isPackageSession = req?.body?.isPackageSession || true
+    const paymentDemandingDate = req?.body?.paymentDemandingDate || new Date()
+    const paymentPayingingDate = req?.body?.paymentPayingingDate
 
     
 
@@ -81,8 +87,38 @@ const addAppointment = asyncHandler( async (req, res) =>
         throw new APIError(400, "Please provide a valid day.")
     }
 
+    if(paid > 0 && !paymentPayingingDate)
+    {
+        throw new APIError(400, "Please provide a valid date at which payment paid.")
+    }
+
     const DBDoctor = await User.findById(doctor).select("_id doctorField")
+
+
+    if (!DBDoctor?._id) {
+        throw new APIError(500, "Failed to fetch doctor from database")
+    }
+
+
     const bookingDate = new Date(date)
+
+    const DBPendingPackage = await Package
+    .findOne({userProfile: profileId, packageStatus: "pending"})
+    .populate("payments", "paid")
+
+    
+    if(isPackageSession && DBPendingPackage?._id && DBPendingPackage?.forSession == forSession)
+    {
+        const sessionsDifference = DBPendingPackage.totalSessions - DBPendingPackage.doneSessions
+
+        if(sessionsDifference <= 0)
+        {
+            throw new APIError(400, "Patient has a pending package whose sessions are completed but package is still pending resolve it first to book appointment.")
+        }
+
+        
+    }
+
 
 
     if (!isForRecord) 
@@ -91,10 +127,6 @@ const addAppointment = asyncHandler( async (req, res) =>
 
         console.log("bookingDate: ", bookingDate, date);
         
-
-        if (!DBDoctor?._id) {
-            throw new APIError(500, "Failed to fetch doctor from database")
-        }
 
         if (!DBDoctor?.doctorField?.onDuty) {
             throw new APIError(400, "Sorry to say your selected doctor is on leave")
@@ -116,12 +148,6 @@ const addAppointment = asyncHandler( async (req, res) =>
 
 
     }
-
-    
-   
-    
-    
-
 
 
     if(cellNo?.replace("-", "")?.length <= 12 && cellNo?.replace("-", "")?.length >= 12)
@@ -148,7 +174,6 @@ const addAppointment = asyncHandler( async (req, res) =>
 
     const newAppointment = await Appointment.create(
     {
-        paymentStatus: paid > 0 ? "paid" : "pending",
         createdBy: creater?._id,
         diagnoses,
         doctor,
@@ -169,13 +194,9 @@ const addAppointment = asyncHandler( async (req, res) =>
             timeOfUpdation: isForRecord ? 0 : updationTimeLine
         },
         userProfileId: profileId,
-        paymentSection:
-        {
-            payable: payable || 1000,
-            paid: paid || 0
-        }
     }
     )
+
 
     if(!newAppointment?._id)
     {
@@ -187,6 +208,88 @@ const addAppointment = asyncHandler( async (req, res) =>
 
         await DBDoctor.save({ validateBeforeSave: false })
     }
+
+
+    let DBPaymentId = null
+    
+    if(paid > 0)
+    {
+        const paymentDoc = await Payment.create(
+        {
+            appointmentId: newAppointment._id,
+            demandingDate: paymentDemandingDate,
+            doctor: doctor,
+            forSession: forSession,
+            isPackagePayment: isPackageSession && DBPendingPackage?._id ? true : false,
+            packageId: DBPendingPackage._id,
+            paid: paid,
+            payable: payable,
+            paymentDate: paymentPayingingDate,
+            paymentStatus: "paid",
+
+        }
+        )
+                
+        if(!paymentDoc?._id)
+        {
+            await Appointment.deleteOne({_id: newAppointment._id})
+            throw new APIError(500, "Failed to book slot, try again")
+        }
+
+        newAppointment.paymentId = paymentDoc._id
+
+        await newAppointment.save({validateBeforeSave: false})
+
+        DBPaymentId = paymentDoc?._id
+
+
+    }
+
+
+    if(isPackageSession && DBPendingPackage?._id && DBPendingPackage?.forSession == forSession)
+    {
+        DBPendingPackage.doneSessions += 1
+
+        if(DBPendingPackage.doneSessions == 0)
+        {
+            DBPendingPackage.packageStatus = "completed"
+            DBPendingPackage.endingDate = new Date()
+        }
+
+        DBPendingPackage.appointments = [...DBPendingPackage.appointments, newAppointment._id]
+
+        if(DBPaymentId)
+        {
+            
+            let totalPaid = Number(paid)
+
+            DBPendingPackage.payments.map(pay => totalPaid += Number(pay.paid))
+
+
+            if(totalPaid >= Number(DBPendingPackage.payable))
+            {
+                DBPendingPackage.paymentStatus = "paid"
+            }
+            else
+            {
+                DBPendingPackage.paymentStatus = "partial"
+            }
+
+
+            DBPendingPackage.payments = [...DBPendingPackage.payments, DBPaymentId]
+
+        }
+
+        newAppointment.isPackageSession = true
+        newAppointment.totalSessions = DBPendingPackage.totalSessions
+        newAppointment.sessionNumber = DBPendingPackage.doneSessions
+
+
+        await DBPendingPackage.save({validateBeforeSave: false})
+        await newAppointment.save({validateBeforeSave: false})
+        
+    }
+
 
     return res
     .status(201)

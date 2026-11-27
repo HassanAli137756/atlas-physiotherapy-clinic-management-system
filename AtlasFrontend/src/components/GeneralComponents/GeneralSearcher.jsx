@@ -12,6 +12,7 @@ import { CustomButton } from "../../utils/CustomButton";
 import { ErrorMessage } from "../../utils/ErrorMessage";
 import { AppointmentCards } from "./AppointmetCards";
 import { useNavigate } from "react-router-dom";
+import {DateInput} from "../../utils/DateInput";
 
 let startingDefault = new Date()
 let endingDefault = new Date()
@@ -265,49 +266,23 @@ const GeneralSearcher = (
         </div>
         <div className="p-3">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Starting Date
+            
+            <DateInput
+            max={endingDate}
+            isDisabled={dateFilterState}
+            label={"Starting Date"}
+            defaultValue={startingDate}
+            onChange={(date) => setStartingDate(date)}
+            />
+            
+            <DateInput                  
+            min={startingDate}
+            isDisabled={dateFilterState}
+            label={"Ending Date"}
+            defaultValue={endingDate}
+            onChange={(date) => setEndingDate(date)}
+            />
 
-                <div className="relative">
-                  <CalendarDays
-                    size={17}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                  />
-
-                  <input
-                  disabled={dateFilterState}
-                  max={endingDate}
-                  type="date"
-                  value={startingDate}
-                  onChange={(e) => setStartingDate?.(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-700 outline-none transition hover:border-emerald-400 hover:bg-white hover:ring-2 hover:ring-emerald-100"
-                  />
-                </div>
-              </label>
-            </div>
-
-            <div>
-              <label className="p-2 block text-sm font-medium text-gray-700">
-                Ending Date
-
-                <div className="relative">
-                  <Clock3
-                    size={17}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                  />
-
-                  <input
-                  disabled={dateFilterState}
-                  min={startingDate}
-                  type="date"
-                  value={endingDate}
-                  onChange={(e) => setEndingDate?.(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-700 outline-none transition hover:border-emerald-400 hover:bg-white hover:ring-2 hover:ring-emerald-100"
-                  />
-                </div>
-              </label>
-            </div>
           </div>
 
           <br />

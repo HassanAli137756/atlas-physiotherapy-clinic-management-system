@@ -21,12 +21,6 @@ const appointmentSchema = new Schema(
         ref: "Profile",
         required: true
     },
-    paymentStatus:
-    {
-        type: String,
-        enum: ["pending", "paid"],
-        default: "pending"
-    },
     generalPatientInfo:
     {
         type:
@@ -61,7 +55,6 @@ const appointmentSchema = new Schema(
         timeOfUpdation: Number
 
     },
-    
     forSession:
     {
         type: String,
@@ -69,11 +62,6 @@ const appointmentSchema = new Schema(
         trim: true,
         default: "checkup",
         required: true
-    },
-    paymentSection:
-    {
-        payable: Number,
-        paid: Number
     },
     diagnoses:
     {
@@ -88,9 +76,26 @@ const appointmentSchema = new Schema(
         type: String,
         enum: ["pending", "done", "cancelled"],
         default: "pending"
-    }
-    
-
+    },
+    isPackageSession:
+    {
+        type: Boolean,
+        default: false,
+        required: true
+    },
+    totalSessions:
+    {
+        type: Number
+    },
+    sessionNumber:
+    {
+        type: Number
+    },
+    paymentId:
+    {
+        type: Schema.Types.ObjectId,
+        ref: "Payment",
+    },
 
 },
 {

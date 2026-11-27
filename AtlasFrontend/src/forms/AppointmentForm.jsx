@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { TextInput } from '../utils/TextInput'
-import { PasswordInput } from '../utils/PasswordInput'
-import { ImageInput } from '../utils/ImageInput'
 import { CustomButton } from '../utils/CustomButton'
 import { useForm } from 'react-hook-form'
 import { useAxios } from '../useAxios'
 import { Loading } from '../utils/Loading'
 import { ErrorMessage } from '../utils/ErrorMessage'
+import { DateInput } from '../utils/DateInput'
 import { useDispatch, useSelector } from 'react-redux'
 import { SelectInput } from '../utils/CustomSelectInput'
 import { TimeSelection } from '../utils/Times'
@@ -164,18 +163,14 @@ function AppointmentForm(
             return;
         }
 
-        if(bookingByDate)
-        {
-            if(!date)
-            {
+        if (bookingByDate) {
+            if (!date) {
                 setError("Please select a valid date")
                 return;
             }
         }
-        else
-        {
-            if(!formData?.["day"] && !formData?.["time"])
-            {
+        else {
+            if (!formData?.["day"] && !formData?.["time"]) {
                 setError("Please select a day and a time to book appointment")
                 return;
             }
@@ -485,63 +480,51 @@ function AppointmentForm(
 
 
                         {
-                        RTKUser?.userData?.role !== "patinet"
-                        ? !bookingByDate ?
-                            <SelectInput
-                                defaultValue={state?.day || selectedDay.toLowerCase()}
-                                onChange={(day) => (setSelectedDay(day))}
-                                options={daysOptions}
-                                error={errors}
-                                label={"Select Day"}
-                                name={"day"}
-                                register={register}
-                                placeholder='Select a day for your treatment'
-                            />
-                            :
-                            <div>
-                                <div>
-                                    <label className="p-2 block text-sm font-medium text-gray-700">
-                                    Select Date
-
-                                    <div className="relative">
-                                        <Clock3
-                                            size={17}
-                                            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                                        />
-
-                                        <input
-                                            type="date"
-                                            value={date}
-                                            onChange={(e) => setDate(e.target.value)}
-                                            className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-700 outline-none transition hover:border-emerald-400 hover:bg-white hover:ring-2 hover:ring-emerald-100"
-                                        />
-                                    </div>
-                                </label>
-                                <br />
-                                <div>
-                                    <TextInput
-                                    errors={errors}
-                                    register={register}
-                                    defaultValue='05:00:PM'
-                                    isRequired={true}
-                                    lable='Time'
-                                    placeholder='Please enter time according to time format of all appointments'
-                                    name={"time"}
+                            RTKUser?.userData?.role !== "patinet"
+                                ? !bookingByDate ?
+                                    <SelectInput
+                                        defaultValue={state?.day || selectedDay.toLowerCase()}
+                                        onChange={(day) => (setSelectedDay(day))}
+                                        options={daysOptions}
+                                        error={errors}
+                                        label={"Select Day"}
+                                        name={"day"}
+                                        register={register}
+                                        placeholder='Select a day for your treatment'
                                     />
-                                </div>
-                                </div>
-                            </div>
-                        :
-                        <SelectInput
-                            defaultValue={state?.day || selectedDay.toLowerCase()}
-                            onChange={(day) => (setSelectedDay(day))}
-                            options={daysOptions}
-                            error={errors}
-                            label={"Select Day"}
-                            name={"day"}
-                            register={register}
-                            placeholder='Select a day for your treatment'
-                        />
+                                    :
+                                    <div>
+                                        <DateInput
+                                            errors={errors}
+                                            label={"Select Date"}
+                                            defaultValue={date}
+                                            onChange={(val) => setDate(val)}
+
+                                        />
+                                        <br />
+                                        <div>
+                                            <TextInput
+                                                errors={errors}
+                                                register={register}
+                                                defaultValue='05:00:PM'
+                                                isRequired={true}
+                                                lable='Time'
+                                                placeholder='Please enter time according to time format of all appointments'
+                                                name={"time"}
+                                            />
+                                        </div>
+                                    </div>
+                                :
+                                <SelectInput
+                                    defaultValue={state?.day || selectedDay.toLowerCase()}
+                                    onChange={(day) => (setSelectedDay(day))}
+                                    options={daysOptions}
+                                    error={errors}
+                                    label={"Select Day"}
+                                    name={"day"}
+                                    register={register}
+                                    placeholder='Select a day for your treatment'
+                                />
                         }
 
 
@@ -551,15 +534,15 @@ function AppointmentForm(
                         {
                             !bookingByDate &&
                             <TimeSelection
-                            defaultTime={state?.time}
-                            date={new Date(date).toLocaleDateString("en-US", { dateStyle: "medium" })}
-                            errors={errors}
-                            name='time'
-                            register={register}
-                            selectedDay={selectedDay}
-                            times={times}
+                                defaultTime={state?.time}
+                                date={new Date(date).toLocaleDateString("en-US", { dateStyle: "medium" })}
+                                errors={errors}
+                                name='time'
+                                register={register}
+                                selectedDay={selectedDay}
+                                times={times}
 
-                        />
+                            />
                         }
 
                     </div>
